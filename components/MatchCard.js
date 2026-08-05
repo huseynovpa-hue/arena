@@ -153,6 +153,16 @@ export default function MatchCard({ match, prediction, userId, onUpdate }) {
           </div>
         )}
 
+        {/* Missed match — no prediction and match started/finished */}
+        {!saved && isExpired && (
+          <div className="flex justify-center mb-2.5">
+            <div className="bg-red-500/10 border border-red-500/30 rounded-lg px-4 py-1.5 text-center">
+              <div className="text-[9px] text-red-400 uppercase tracking-wider">No prediction</div>
+              <div className="text-[13px] font-bold text-red-400">Missed</div>
+            </div>
+          </div>
+        )}
+
         {/* Over / Under 2.5 */}
         <div className="mt-2.5">
           <div className="text-[9px] text-[--muted] uppercase tracking-wider text-center mb-1">Over / Under 2.5</div>
