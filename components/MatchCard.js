@@ -130,31 +130,15 @@ export default function MatchCard({ match, prediction, userId, onUpdate }) {
           <ScoreBtn value={awayScore} onChange={setAwayScore} disabled={isInputDisabled} />
         </div>
 
-        {/* Stats row */}
-        <div className="flex gap-1 sm:gap-1.5 justify-center flex-wrap">
-          <div className="bg-[--bg] border border-[--border] rounded-lg px-2 sm:px-3 py-1 text-center">
-            <div className="text-[8px] sm:text-[9px] text-[--muted] uppercase tracking-wider">Diff</div>
-            <div className="text-[12px] sm:text-[13px] font-bold text-purple-400">{diff > 0 ? "+" : ""}{diff}</div>
-          </div>
-          <div className="bg-[--bg] border border-[--border] rounded-lg px-2 sm:px-3 py-1 text-center">
-            <div className="text-[8px] sm:text-[9px] text-[--muted] uppercase tracking-wider">Result</div>
-            <div className="text-[12px] sm:text-[13px] font-bold text-cyan-400">{diff > 0 ? "Home" : diff < 0 ? "Away" : "Draw"}</div>
-          </div>
-          <div className="bg-[--bg] border border-[--border] rounded-lg px-2 sm:px-3 py-1 text-center">
-            <div className="text-[8px] sm:text-[9px] text-[--muted] uppercase tracking-wider">Total</div>
-            <div className="text-[12px] sm:text-[13px] font-bold text-amber-400">{total}</div>
-          </div>
-          <div className="bg-[--bg] border border-[--border] rounded-lg px-2 sm:px-3 py-1 text-center">
-            <div className="text-[8px] sm:text-[9px] text-[--muted] uppercase tracking-wider">Max</div>
-            <div className="text-[12px] sm:text-[13px] font-bold text-amber-400">50</div>
-          </div>
-          {prediction?.points != null && (
-            <div className="bg-green-500/10 border border-green-500/30 rounded-lg px-2 sm:px-3 py-1 text-center">
-              <div className="text-[8px] sm:text-[9px] text-green-400 uppercase tracking-wider">Earned</div>
-              <div className="text-[12px] sm:text-[13px] font-bold text-green-400">{prediction.points}</div>
+        {/* Earned points — only after match scored */}
+        {prediction?.points != null && (
+          <div className="flex justify-center mb-2.5">
+            <div className="bg-green-500/10 border border-green-500/30 rounded-lg px-4 py-1.5 text-center">
+              <div className="text-[9px] text-green-400 uppercase tracking-wider">Earned</div>
+              <div className="text-[14px] font-bold text-green-400">{prediction.points} pts</div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Over / Under 2.5 */}
         <div className="mt-2.5">
