@@ -32,16 +32,17 @@ export default function MatchCard({ match, prediction, userId, onUpdate }) {
   const [homeScore, setHomeScore] = useState(prediction?.home_score ?? 0);
   const [awayScore, setAwayScore] = useState(prediction?.away_score ?? 0);
   const [firstToScore, setFirstToScore] = useState(prediction?.first_to_score ?? null);
+  const [overUnder, setOverUnder] = useState(prediction?.over_under ?? null);
   const [saved, setSaved] = useState(!!prediction);
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  // Sync when prediction loads from DB
   useEffect(() => {
     if (prediction) {
       setHomeScore(prediction.home_score ?? 0);
       setAwayScore(prediction.away_score ?? 0);
       setFirstToScore(prediction.first_to_score ?? null);
+      setOverUnder(prediction.over_under ?? null);
       setSaved(true);
       setEditing(false);
     }
@@ -50,19 +51,18 @@ export default function MatchCard({ match, prediction, userId, onUpdate }) {
   const isExpired = new Date(match.kick_off).getTime() <= Date.now();
   const isFinished = match.status === "finished";
   const isInputDisabled = (saved && !editing) || isExpired;
-  const canSave = firstToScore !== null && userId;
+  const canSave = firstToScore !== null && overUnder !== null && userId;
 
-  // Has the user changed anything from the saved prediction?
+  const total = homeScore + awayScore;
+  const diff = homeScore - awayScore;
+  const { day, time } = formatDate(match.kick_off);
+
   const hasChanges = saved && (
     homeScore !== prediction?.home_score ||
     awayScore !== prediction?.away_score ||
-    firstToScore !== prediction?.first_to_score
+    firstToScore !== prediction?.first_to_score ||
+    overUnder !== prediction?.over_under
   );
-
-  const total = homeScore + awayScore;
-  const overUnder = total > 2.5 ? "Over" : "Under";
-  const diff = homeScore - awayScore;
-  const { day, time } = formatDate(match.kick_off);
 
   let statusLabel = null;
   if (isFinished) {
@@ -75,29 +75,22 @@ export default function MatchCard({ match, prediction, userId, onUpdate }) {
     if (!canSave) return;
     setSaving(true);
     const { error } = await supabase.from("predictions").upsert(
-      { user_id: userId, match_id: match.id, home_score: homeScore, away_score: awayScore, first_to_score: firstToScore },
+      { user_id: userId, match_id: match.id, home_score: homeScore, away_score: awayScore, first_to_score: firstToScore, over_under: overUnder },
       { onConflict: "user_id,match_id" }
     );
     setSaving(false);
-    if (!error) {
-      setSaved(true);
-      setEditing(false);
-      onUpdate?.();
-    } else {
-      alert("Failed to save: " + error.message);
-    }
+    if (!error) { setSaved(true); setEditing(false); onUpdate?.(); }
+    else alert("Failed to save: " + error.message);
   }
 
-  function startEditing() {
-    if (!isExpired) setEditing(true);
-  }
+  function startEditing() { if (!isExpired) setEditing(true); }
 
   function cancelEdit() {
-    // Reset to saved values
     if (prediction) {
       setHomeScore(prediction.home_score ?? 0);
       setAwayScore(prediction.away_score ?? 0);
       setFirstToScore(prediction.first_to_score ?? null);
+      setOverUnder(prediction.over_under ?? null);
     }
     setEditing(false);
   }
@@ -108,6 +101,7 @@ export default function MatchCard({ match, prediction, userId, onUpdate }) {
     { val: "away", label: match.away_team },
   ];
   const ftsLabel = firstToScore === "home" ? match.home_team : firstToScore === "away" ? match.away_team : firstToScore === "none" ? "No Goal" : "—";
+  const ouLabel = overUnder === "over" ? "Over 2.5" : overUnder === "under" ? "Under 2.5" : "—";
 
   return (
     <div className={`card transition-colors ${saved && !editing ? "border-green-500/25" : ""}`}>
@@ -140,16 +134,16 @@ export default function MatchCard({ match, prediction, userId, onUpdate }) {
         {/* Stats row */}
         <div className="flex gap-1.5 mt-3.5 justify-center flex-wrap">
           <div className="bg-[--bg] border border-[--border] rounded-lg px-3 py-1.5 text-center">
-            <div className="text-[9px] text-[--muted] uppercase tracking-wider">O/U 2.5</div>
-            <div className={`text-[13px] font-bold ${overUnder === "Over" ? "text-green-400" : "text-blue-400"}`}>{overUnder} ({total})</div>
-          </div>
-          <div className="bg-[--bg] border border-[--border] rounded-lg px-3 py-1.5 text-center">
             <div className="text-[9px] text-[--muted] uppercase tracking-wider">Diff</div>
             <div className="text-[13px] font-bold text-purple-400">{diff > 0 ? "+" : ""}{diff}</div>
           </div>
           <div className="bg-[--bg] border border-[--border] rounded-lg px-3 py-1.5 text-center">
             <div className="text-[9px] text-[--muted] uppercase tracking-wider">Result</div>
             <div className="text-[13px] font-bold text-cyan-400">{diff > 0 ? "Home" : diff < 0 ? "Away" : "Draw"}</div>
+          </div>
+          <div className="bg-[--bg] border border-[--border] rounded-lg px-3 py-1.5 text-center">
+            <div className="text-[9px] text-[--muted] uppercase tracking-wider">Total</div>
+            <div className="text-[13px] font-bold text-amber-400">{total} goals</div>
           </div>
           <div className="bg-[--bg] border border-[--border] rounded-lg px-3 py-1.5 text-center">
             <div className="text-[9px] text-[--muted] uppercase tracking-wider">Max</div>
@@ -161,6 +155,23 @@ export default function MatchCard({ match, prediction, userId, onUpdate }) {
               <div className="text-[13px] font-bold text-green-400">{prediction.points} pts</div>
             </div>
           )}
+        </div>
+
+        {/* Over / Under 2.5 selection */}
+        <div className="mt-3">
+          <div className="text-[9px] text-[--muted] uppercase tracking-wider text-center mb-1.5">Over / Under 2.5 goals</div>
+          <div className="flex gap-1.5 justify-center">
+            {[{ val: "over", label: "Over 2.5" }, { val: "under", label: "Under 2.5" }].map((o) => (
+              <button key={o.val} disabled={isInputDisabled} onClick={() => setOverUnder(o.val)}
+                className={`flex-1 max-w-[160px] py-1.5 px-2 rounded-lg text-[11px] font-semibold border-[1.5px] transition-all ${
+                  overUnder === o.val
+                    ? o.val === "over"
+                      ? "bg-green-500/15 border-green-500 text-green-400"
+                      : "bg-blue-500/15 border-blue-500 text-blue-400"
+                    : "bg-[--bg] border-[--border] text-[--muted]"
+                } disabled:cursor-not-allowed`}>{o.label}</button>
+            ))}
+          </div>
         </div>
 
         {/* First to Score */}
@@ -176,11 +187,11 @@ export default function MatchCard({ match, prediction, userId, onUpdate }) {
           </div>
         </div>
 
-        {/* === SAVED: show prediction + edit button === */}
+        {/* Saved prediction display + edit button */}
         {saved && !editing && (
           <div className="mt-3 py-2 px-3 rounded-xl bg-blue-500/10 border border-blue-500/25 flex items-center justify-between">
             <span className="text-blue-400 text-[11px] font-bold">
-              🔒 Your prediction: {prediction?.home_score} : {prediction?.away_score} · First: {ftsLabel}
+              🔒 {prediction?.home_score} : {prediction?.away_score} · {ouLabel} · First: {ftsLabel}
             </span>
             {!isExpired && (
               <button onClick={startEditing}
@@ -191,7 +202,7 @@ export default function MatchCard({ match, prediction, userId, onUpdate }) {
           </div>
         )}
 
-        {/* === EDITING: show save/cancel === */}
+        {/* Editing: save/cancel */}
         {editing && (
           <div className="mt-3 flex gap-2">
             <button onClick={cancelEdit}
@@ -205,13 +216,13 @@ export default function MatchCard({ match, prediction, userId, onUpdate }) {
           </div>
         )}
 
-        {/* === NOT SAVED YET: first-time lock === */}
+        {/* First-time lock */}
         {!saved && !isExpired && (
           <button disabled={!canSave || saving} onClick={savePrediction}
             className={`w-full mt-3 py-2.5 rounded-xl text-xs font-bold tracking-wide transition-all ${
               canSave ? "bg-gradient-to-r from-green-500 to-green-600 text-white hover:brightness-110" : "bg-[--surface] border border-[--border] text-[--muted] cursor-not-allowed"
             }`}>
-            {saving ? "Saving..." : !userId ? "Sign in to predict" : canSave ? "🔒 LOCK PREDICTION" : "Select first to score to lock"}
+            {saving ? "Saving..." : !userId ? "Sign in to predict" : canSave ? "🔒 LOCK PREDICTION" : "Select O/U and first to score to lock"}
           </button>
         )}
 
