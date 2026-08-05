@@ -41,6 +41,9 @@ export default function Home() {
   }
 
   const lockedCount = Object.keys(predictions).length;
+  const now = Date.now();
+  const missedCount = matches.filter(m => new Date(m.kick_off).getTime() <= now && !predictions[m.id]).length;
+  const openCount = matches.filter(m => new Date(m.kick_off).getTime() > now && !predictions[m.id]).length;
 
   if (loading) {
     return (
@@ -63,18 +66,19 @@ export default function Home() {
                 }}
               />
             </div>
-            <div className="text-[10px] text-[--muted] mt-1">
-              {lockedCount === matches.length && matches.length > 0
-                ? "All predictions locked! Good luck 🍀"
-                : `${matches.length - lockedCount} match${matches.length - lockedCount !== 1 ? "es" : ""} remaining`}
+            <div className="flex gap-3 mt-1.5 text-[10px]">
+              <span className="text-green-400 font-semibold">✓ {lockedCount} locked</span>
+              {missedCount > 0 && <span className="text-red-400 font-semibold">✕ {missedCount} missed</span>}
+              {openCount > 0 && <span className="text-[--muted]">{openCount} open</span>}
+              {lockedCount === matches.length && <span className="text-green-400">All locked! Good luck 🍀</span>}
             </div>
           </div>
           <div className="text-center">
             <div className="text-2xl font-black text-green-400">
               {lockedCount}
             </div>
-            <div className="text-[8px] text-[--muted] uppercase tracking-wider">
-              Locked
+            <div className="text-[7px] text-[--muted] uppercase tracking-wider">
+              of {matches.length}
             </div>
           </div>
         </div>
