@@ -252,7 +252,12 @@ export default function AdminPage() {
       {/* RESULTS */}
       {tab === "results" && (
         <div className="space-y-3">
-          <p className="text-xs text-[--muted]">Select a match to enter the actual result. Predictions will be scored automatically.</p>
+          <p className="text-xs text-[--muted]">Select a match to enter or edit the result. Predictions will be re-scored automatically.</p>
+
+          {/* Pending matches */}
+          {matches.filter((m) => m.status !== "finished").length > 0 && (
+            <h3 className="text-xs font-bold text-amber-400">⏳ Awaiting Results</h3>
+          )}
           {matches.filter((m) => m.status !== "finished").map((m) => (
             <button key={m.id} onClick={() => { setResultMatch(m); setResultHome(0); setResultAway(0); setResultFirst("home"); }}
               className={`w-full card p-3 flex items-center gap-2.5 text-left transition-colors ${resultMatch?.id === m.id ? "border-green-500/40" : ""}`}>
@@ -265,9 +270,29 @@ export default function AdminPage() {
             </button>
           ))}
 
+          {/* Finished matches — editable */}
+          {matches.filter((m) => m.status === "finished").length > 0 && (
+            <h3 className="text-xs font-bold text-green-400 mt-4">✅ Completed — click to edit</h3>
+          )}
+          {matches.filter((m) => m.status === "finished").map((m) => (
+            <button key={m.id}
+              onClick={() => { setResultMatch(m); setResultHome(m.home_score); setResultAway(m.away_score); setResultFirst(m.first_to_score || "home"); }}
+              className={`w-full card p-3 flex items-center gap-2.5 text-left transition-colors ${resultMatch?.id === m.id ? "border-amber-500/40" : ""}`}>
+              {m.home_badge && <img src={m.home_badge} className="w-6 h-6 object-contain" />}
+              <div className="flex-1">
+                <div className="text-xs font-bold">{m.home_team} {m.home_score} - {m.away_score} {m.away_team}</div>
+                <div className="text-[10px] text-green-400">✓ Scored · click to edit</div>
+              </div>
+              {m.away_badge && <img src={m.away_badge} className="w-6 h-6 object-contain" />}
+            </button>
+          ))}
+
+          {/* Result form */}
           {resultMatch && (
             <div className="card p-5 space-y-4 border-green-500/30">
-              <h3 className="text-sm font-bold">{resultMatch.home_team} vs {resultMatch.away_team}</h3>
+              <h3 className="text-sm font-bold">
+                {resultMatch.status === "finished" ? "✏️ Edit result" : "Enter result"}: {resultMatch.home_team} vs {resultMatch.away_team}
+              </h3>
               <div className="flex items-center gap-4 justify-center">
                 <div className="text-center">
                   <div className="text-[10px] text-[--muted] uppercase mb-1">{resultMatch.home_team}</div>
@@ -292,22 +317,10 @@ export default function AdminPage() {
                   ))}
                 </div>
               </div>
-              <button onClick={submitResult} className="btn-gold w-full">✓ SAVE RESULT & SCORE PREDICTIONS</button>
+              <button onClick={submitResult} className="btn-gold w-full">
+                ✓ {resultMatch.status === "finished" ? "UPDATE RESULT & RE-SCORE" : "SAVE RESULT & SCORE PREDICTIONS"}
+              </button>
             </div>
-          )}
-
-          {matches.filter((m) => m.status === "finished").length > 0 && (
-            <>
-              <h3 className="text-xs font-bold text-[--muted] mt-6">Completed</h3>
-              {matches.filter((m) => m.status === "finished").map((m) => (
-                <div key={m.id} className="card p-3 flex items-center gap-2.5 opacity-60">
-                  <div className="flex-1">
-                    <div className="text-xs font-bold">{m.home_team} {m.home_score} - {m.away_score} {m.away_team}</div>
-                    <div className="text-[10px] text-green-400">✓ Scored</div>
-                  </div>
-                </div>
-              ))}
-            </>
           )}
         </div>
       )}
