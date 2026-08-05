@@ -32,30 +32,38 @@ export default function MatchCard({ match, prediction, userId, onUpdate }) {
   const [homeScore, setHomeScore] = useState(prediction?.home_score ?? 0);
   const [awayScore, setAwayScore] = useState(prediction?.away_score ?? 0);
   const [firstToScore, setFirstToScore] = useState(prediction?.first_to_score ?? null);
-  const [locked, setLocked] = useState(!!prediction);
+  const [saved, setSaved] = useState(!!prediction);
+  const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  // Sync state when prediction prop changes (e.g. after page refresh loads data)
+  // Sync when prediction loads from DB
   useEffect(() => {
     if (prediction) {
       setHomeScore(prediction.home_score ?? 0);
       setAwayScore(prediction.away_score ?? 0);
       setFirstToScore(prediction.first_to_score ?? null);
-      setLocked(true);
+      setSaved(true);
+      setEditing(false);
     }
   }, [prediction]);
 
   const isExpired = new Date(match.kick_off).getTime() <= Date.now();
   const isFinished = match.status === "finished";
-  const isLocked = locked || isExpired;
-  const canLock = !isLocked && firstToScore !== null && userId;
+  const isInputDisabled = (saved && !editing) || isExpired;
+  const canSave = firstToScore !== null && userId;
+
+  // Has the user changed anything from the saved prediction?
+  const hasChanges = saved && (
+    homeScore !== prediction?.home_score ||
+    awayScore !== prediction?.away_score ||
+    firstToScore !== prediction?.first_to_score
+  );
 
   const total = homeScore + awayScore;
   const overUnder = total > 2.5 ? "Over" : "Under";
   const diff = homeScore - awayScore;
   const { day, time } = formatDate(match.kick_off);
 
-  // Status label
   let statusLabel = null;
   if (isFinished) {
     statusLabel = { text: `✅ Finished — ${match.home_score} : ${match.away_score}`, color: "text-green-400", bg: "bg-green-500/10 border-green-500/25" };
@@ -63,16 +71,35 @@ export default function MatchCard({ match, prediction, userId, onUpdate }) {
     statusLabel = { text: "⏳ In progress — awaiting results", color: "text-amber-400", bg: "bg-amber-500/10 border-amber-500/25" };
   }
 
-  async function lockPrediction() {
-    if (!canLock) return;
+  async function savePrediction() {
+    if (!canSave) return;
     setSaving(true);
     const { error } = await supabase.from("predictions").upsert(
       { user_id: userId, match_id: match.id, home_score: homeScore, away_score: awayScore, first_to_score: firstToScore },
       { onConflict: "user_id,match_id" }
     );
     setSaving(false);
-    if (!error) { setLocked(true); onUpdate?.(); }
-    else alert("Failed to save: " + error.message);
+    if (!error) {
+      setSaved(true);
+      setEditing(false);
+      onUpdate?.();
+    } else {
+      alert("Failed to save: " + error.message);
+    }
+  }
+
+  function startEditing() {
+    if (!isExpired) setEditing(true);
+  }
+
+  function cancelEdit() {
+    // Reset to saved values
+    if (prediction) {
+      setHomeScore(prediction.home_score ?? 0);
+      setAwayScore(prediction.away_score ?? 0);
+      setFirstToScore(prediction.first_to_score ?? null);
+    }
+    setEditing(false);
   }
 
   const ftsOptions = [
@@ -80,11 +107,10 @@ export default function MatchCard({ match, prediction, userId, onUpdate }) {
     { val: "none", label: "No Goal" },
     { val: "away", label: match.away_team },
   ];
-
-  const ftsLabel = firstToScore === "home" ? match.home_team : firstToScore === "away" ? match.away_team : "No Goal";
+  const ftsLabel = firstToScore === "home" ? match.home_team : firstToScore === "away" ? match.away_team : firstToScore === "none" ? "No Goal" : "—";
 
   return (
-    <div className={`card transition-colors ${locked ? "border-green-500/25" : ""}`}>
+    <div className={`card transition-colors ${saved && !editing ? "border-green-500/25" : ""}`}>
       {/* Header */}
       <div className="flex items-center justify-between px-3.5 py-2 bg-[--surface] border-b border-[--border]">
         <span className="text-[10px] text-[--muted] font-semibold">{match.league}</span>
@@ -102,9 +128,9 @@ export default function MatchCard({ match, prediction, userId, onUpdate }) {
             <span className="text-sm font-bold text-right">{match.home_team}</span>
             <TeamLogo src={match.home_badge} size={36} />
           </div>
-          <ScoreBtn value={homeScore} onChange={setHomeScore} disabled={isLocked} />
+          <ScoreBtn value={homeScore} onChange={setHomeScore} disabled={isInputDisabled} />
           <div className="text-[10px] font-extrabold text-[--muted] px-1 py-0.5 bg-[--bg] rounded">VS</div>
-          <ScoreBtn value={awayScore} onChange={setAwayScore} disabled={isLocked} />
+          <ScoreBtn value={awayScore} onChange={setAwayScore} disabled={isInputDisabled} />
           <div className="flex-1 flex items-center gap-2">
             <TeamLogo src={match.away_badge} size={36} />
             <span className="text-sm font-bold">{match.away_team}</span>
@@ -142,7 +168,7 @@ export default function MatchCard({ match, prediction, userId, onUpdate }) {
           <div className="text-[9px] text-[--muted] uppercase tracking-wider text-center mb-1.5">First team to score</div>
           <div className="flex gap-1.5 justify-center">
             {ftsOptions.map((o) => (
-              <button key={o.val} disabled={isLocked} onClick={() => setFirstToScore(o.val)}
+              <button key={o.val} disabled={isInputDisabled} onClick={() => setFirstToScore(o.val)}
                 className={`flex-1 max-w-[140px] py-1.5 px-1 rounded-lg text-[11px] font-semibold border-[1.5px] transition-all truncate ${
                   firstToScore === o.val ? "bg-green-500/15 border-green-500 text-green-400" : "bg-[--bg] border-[--border] text-[--muted]"
                 } disabled:cursor-not-allowed`}>{o.label}</button>
@@ -150,11 +176,43 @@ export default function MatchCard({ match, prediction, userId, onUpdate }) {
           </div>
         </div>
 
-        {/* Prediction summary (always show when locked) */}
-        {locked && (
-          <div className="mt-3 py-2 rounded-xl text-center bg-blue-500/10 border border-blue-500/25 text-blue-400 text-[11px] font-bold tracking-wide">
-            🔒 Your prediction: {homeScore} : {awayScore} · First: {ftsLabel}
+        {/* === SAVED: show prediction + edit button === */}
+        {saved && !editing && (
+          <div className="mt-3 py-2 px-3 rounded-xl bg-blue-500/10 border border-blue-500/25 flex items-center justify-between">
+            <span className="text-blue-400 text-[11px] font-bold">
+              🔒 Your prediction: {prediction?.home_score} : {prediction?.away_score} · First: {ftsLabel}
+            </span>
+            {!isExpired && (
+              <button onClick={startEditing}
+                className="text-[10px] font-bold text-amber-400 bg-amber-500/15 border border-amber-500/30 px-2.5 py-1 rounded-lg hover:bg-amber-500/25 transition-colors">
+                ✏️ Edit
+              </button>
+            )}
           </div>
+        )}
+
+        {/* === EDITING: show save/cancel === */}
+        {editing && (
+          <div className="mt-3 flex gap-2">
+            <button onClick={cancelEdit}
+              className="flex-1 py-2.5 rounded-xl text-xs font-bold border border-[--border] text-[--muted] hover:text-[--text] transition-colors">
+              Cancel
+            </button>
+            <button onClick={savePrediction} disabled={!canSave || saving}
+              className="flex-1 py-2.5 rounded-xl text-xs font-bold bg-gradient-to-r from-amber-500 to-amber-600 text-white hover:brightness-110 disabled:opacity-40">
+              {saving ? "Saving..." : "💾 SAVE CHANGES"}
+            </button>
+          </div>
+        )}
+
+        {/* === NOT SAVED YET: first-time lock === */}
+        {!saved && !isExpired && (
+          <button disabled={!canSave || saving} onClick={savePrediction}
+            className={`w-full mt-3 py-2.5 rounded-xl text-xs font-bold tracking-wide transition-all ${
+              canSave ? "bg-gradient-to-r from-green-500 to-green-600 text-white hover:brightness-110" : "bg-[--surface] border border-[--border] text-[--muted] cursor-not-allowed"
+            }`}>
+            {saving ? "Saving..." : !userId ? "Sign in to predict" : canSave ? "🔒 LOCK PREDICTION" : "Select first to score to lock"}
+          </button>
         )}
 
         {/* Match status */}
@@ -162,16 +220,6 @@ export default function MatchCard({ match, prediction, userId, onUpdate }) {
           <div className={`mt-2 py-2 rounded-xl text-center border text-[11px] font-bold tracking-wide ${statusLabel.bg} ${statusLabel.color}`}>
             {statusLabel.text}
           </div>
-        )}
-
-        {/* Lock button (only for upcoming unlocked matches) */}
-        {!isExpired && !locked && (
-          <button disabled={!canLock || saving} onClick={lockPrediction}
-            className={`w-full mt-3 py-2.5 rounded-xl text-xs font-bold tracking-wide transition-all ${
-              canLock ? "bg-gradient-to-r from-green-500 to-green-600 text-white hover:brightness-110" : "bg-[--surface] border border-[--border] text-[--muted] cursor-not-allowed"
-            }`}>
-            {saving ? "Saving..." : !userId ? "Sign in to predict" : canLock ? "🔒 LOCK PREDICTION" : "Select first to score to lock"}
-          </button>
         )}
       </div>
     </div>
