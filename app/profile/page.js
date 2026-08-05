@@ -174,16 +174,10 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* Stats */}
-        <div className="flex gap-3">
-          <div className="flex-1 bg-[--bg] rounded-xl p-3 text-center border border-[--border]">
-            <div className="text-xl font-black text-green-400">{profile.total_points || 0}</div>
-            <div className="text-[9px] text-[--muted] uppercase tracking-wider">Total Points</div>
-          </div>
-          <div className="flex-1 bg-[--bg] rounded-xl p-3 text-center border border-[--border]">
-            <div className="text-xl font-black text-amber-400">{profile.is_admin ? "Admin" : "Player"}</div>
-            <div className="text-[9px] text-[--muted] uppercase tracking-wider">Role</div>
-          </div>
+        {/* Role */}
+        <div className="bg-[--bg] rounded-xl p-3 text-center border border-[--border]">
+          <div className="text-sm font-black text-amber-400">{profile.is_admin ? "Admin" : "Player"}</div>
+          <div className="text-[9px] text-[--muted] uppercase tracking-wider">Role</div>
         </div>
 
         {message && (
