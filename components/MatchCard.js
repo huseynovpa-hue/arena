@@ -36,6 +36,7 @@ export default function MatchCard({ match, prediction, userId, onUpdate }) {
   const [saved, setSaved] = useState(!!prediction);
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [isExpired, setIsExpired] = useState(new Date(match.kick_off).getTime() <= Date.now());
 
   useEffect(() => {
     if (prediction) {
@@ -48,7 +49,19 @@ export default function MatchCard({ match, prediction, userId, onUpdate }) {
     }
   }, [prediction]);
 
-  const isExpired = new Date(match.kick_off).getTime() <= Date.now();
+  // Auto-update expired status when countdown ends
+  useEffect(() => {
+    if (isExpired) return;
+    const check = setInterval(() => {
+      if (new Date(match.kick_off).getTime() <= Date.now()) {
+        setIsExpired(true);
+        setEditing(false);
+        clearInterval(check);
+      }
+    }, 1000);
+    return () => clearInterval(check);
+  }, [match.kick_off, isExpired]);
+
   const isFinished = match.status === "finished";
   const isInputDisabled = (saved && !editing) || isExpired;
   const canSave = firstToScore !== null && overUnder !== null && userId;
