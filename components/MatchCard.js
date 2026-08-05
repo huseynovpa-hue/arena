@@ -18,12 +18,12 @@ function ScoreBtn({ value, onChange, disabled }) {
   return (
     <div className="flex items-center gap-1">
       <button disabled={disabled || value <= 0} onClick={() => onChange(Math.max(0, value - 1))}
-        className="w-7 h-7 rounded-md bg-[--card] border border-[--border] text-[--muted] text-base font-bold flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed">−</button>
-      <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-xl font-extrabold transition-colors ${
+        className="w-6 h-6 sm:w-7 sm:h-7 rounded-md bg-[--card] border border-[--border] text-[--muted] text-sm sm:text-base font-bold flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed">−</button>
+      <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center text-lg sm:text-xl font-extrabold transition-colors ${
         disabled ? "bg-[--surface] border-2 border-[--border] text-[--muted]" : "bg-[--bg] border-2 border-green-500 text-white"
       }`}>{value}</div>
       <button disabled={disabled} onClick={() => onChange(value + 1)}
-        className="w-7 h-7 rounded-md bg-[--card] border border-[--border] text-[--muted] text-base font-bold flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed">+</button>
+        className="w-6 h-6 sm:w-7 sm:h-7 rounded-md bg-[--card] border border-[--border] text-[--muted] text-sm sm:text-base font-bold flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed">+</button>
     </div>
   );
 }
@@ -57,13 +57,6 @@ export default function MatchCard({ match, prediction, userId, onUpdate }) {
   const diff = homeScore - awayScore;
   const { day, time } = formatDate(match.kick_off);
 
-  const hasChanges = saved && (
-    homeScore !== prediction?.home_score ||
-    awayScore !== prediction?.away_score ||
-    firstToScore !== prediction?.first_to_score ||
-    overUnder !== prediction?.over_under
-  );
-
   let statusLabel = null;
   if (isFinished) {
     statusLabel = { text: `✅ Finished — ${match.home_score} : ${match.away_score}`, color: "text-green-400", bg: "bg-green-500/10 border-green-500/25" };
@@ -84,7 +77,6 @@ export default function MatchCard({ match, prediction, userId, onUpdate }) {
   }
 
   function startEditing() { if (!isExpired) setEditing(true); }
-
   function cancelEdit() {
     if (prediction) {
       setHomeScore(prediction.home_score ?? 0);
@@ -106,68 +98,73 @@ export default function MatchCard({ match, prediction, userId, onUpdate }) {
   return (
     <div className={`card transition-colors ${saved && !editing ? "border-green-500/25" : ""}`}>
       {/* Header */}
-      <div className="flex items-center justify-between px-3.5 py-2 bg-[--surface] border-b border-[--border]">
-        <span className="text-[10px] text-[--muted] font-semibold">{match.league}</span>
-        <div className="flex items-center gap-2">
-          <span className="text-[10px] text-[--muted]">{day} · {time}</span>
+      <div className="flex items-center justify-between px-3 py-2 bg-[--surface] border-b border-[--border] gap-2">
+        <span className="text-[10px] text-[--muted] font-semibold truncate">{match.league}</span>
+        <div className="flex items-center gap-1.5 shrink-0">
+          <span className="text-[10px] text-[--muted] hidden sm:inline">{day} · {time}</span>
+          <span className="text-[10px] text-[--muted] sm:hidden">{time}</span>
           {!isFinished && <Countdown kickoff={match.kick_off} />}
           {isFinished && <span className="text-[11px] font-bold text-green-400">FINISHED</span>}
         </div>
       </div>
 
-      <div className="p-3.5">
-        {/* Teams + Score */}
-        <div className="flex items-center justify-center gap-2">
-          <div className="flex-1 flex items-center justify-end gap-2">
-            <span className="text-sm font-bold text-right">{match.home_team}</span>
-            <TeamLogo src={match.home_badge} size={36} />
+      <div className="p-3">
+        {/* === MOBILE: stacked layout / DESKTOP: inline === */}
+        {/* Team names row */}
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-1.5 flex-1 min-w-0">
+            <TeamLogo src={match.home_badge} size={28} />
+            <span className="text-xs sm:text-sm font-bold truncate">{match.home_team}</span>
           </div>
-          <ScoreBtn value={homeScore} onChange={setHomeScore} disabled={isInputDisabled} />
-          <div className="text-[10px] font-extrabold text-[--muted] px-1 py-0.5 bg-[--bg] rounded">VS</div>
-          <ScoreBtn value={awayScore} onChange={setAwayScore} disabled={isInputDisabled} />
-          <div className="flex-1 flex items-center gap-2">
-            <TeamLogo src={match.away_badge} size={36} />
-            <span className="text-sm font-bold">{match.away_team}</span>
+          <span className="text-[9px] font-extrabold text-[--muted] px-1.5 mx-1">VS</span>
+          <div className="flex items-center gap-1.5 flex-1 min-w-0 justify-end">
+            <span className="text-xs sm:text-sm font-bold truncate text-right">{match.away_team}</span>
+            <TeamLogo src={match.away_badge} size={28} />
           </div>
         </div>
 
+        {/* Score inputs row — centered */}
+        <div className="flex items-center justify-center gap-3 sm:gap-4 mb-3">
+          <ScoreBtn value={homeScore} onChange={setHomeScore} disabled={isInputDisabled} />
+          <span className="text-[--muted] font-extrabold text-sm">—</span>
+          <ScoreBtn value={awayScore} onChange={setAwayScore} disabled={isInputDisabled} />
+        </div>
+
         {/* Stats row */}
-        <div className="flex gap-1.5 mt-3.5 justify-center flex-wrap">
-          <div className="bg-[--bg] border border-[--border] rounded-lg px-3 py-1.5 text-center">
-            <div className="text-[9px] text-[--muted] uppercase tracking-wider">Diff</div>
-            <div className="text-[13px] font-bold text-purple-400">{diff > 0 ? "+" : ""}{diff}</div>
+        <div className="flex gap-1 sm:gap-1.5 justify-center flex-wrap">
+          <div className="bg-[--bg] border border-[--border] rounded-lg px-2 sm:px-3 py-1 text-center">
+            <div className="text-[8px] sm:text-[9px] text-[--muted] uppercase tracking-wider">Diff</div>
+            <div className="text-[12px] sm:text-[13px] font-bold text-purple-400">{diff > 0 ? "+" : ""}{diff}</div>
           </div>
-          <div className="bg-[--bg] border border-[--border] rounded-lg px-3 py-1.5 text-center">
-            <div className="text-[9px] text-[--muted] uppercase tracking-wider">Result</div>
-            <div className="text-[13px] font-bold text-cyan-400">{diff > 0 ? "Home" : diff < 0 ? "Away" : "Draw"}</div>
+          <div className="bg-[--bg] border border-[--border] rounded-lg px-2 sm:px-3 py-1 text-center">
+            <div className="text-[8px] sm:text-[9px] text-[--muted] uppercase tracking-wider">Result</div>
+            <div className="text-[12px] sm:text-[13px] font-bold text-cyan-400">{diff > 0 ? "Home" : diff < 0 ? "Away" : "Draw"}</div>
           </div>
-          <div className="bg-[--bg] border border-[--border] rounded-lg px-3 py-1.5 text-center">
-            <div className="text-[9px] text-[--muted] uppercase tracking-wider">Total</div>
-            <div className="text-[13px] font-bold text-amber-400">{total} goals</div>
+          <div className="bg-[--bg] border border-[--border] rounded-lg px-2 sm:px-3 py-1 text-center">
+            <div className="text-[8px] sm:text-[9px] text-[--muted] uppercase tracking-wider">Total</div>
+            <div className="text-[12px] sm:text-[13px] font-bold text-amber-400">{total}</div>
           </div>
-          <div className="bg-[--bg] border border-[--border] rounded-lg px-3 py-1.5 text-center">
-            <div className="text-[9px] text-[--muted] uppercase tracking-wider">Max</div>
-            <div className="text-[13px] font-bold text-amber-400">50 pts</div>
+          <div className="bg-[--bg] border border-[--border] rounded-lg px-2 sm:px-3 py-1 text-center">
+            <div className="text-[8px] sm:text-[9px] text-[--muted] uppercase tracking-wider">Max</div>
+            <div className="text-[12px] sm:text-[13px] font-bold text-amber-400">50</div>
           </div>
           {prediction?.points != null && (
-            <div className="bg-green-500/10 border border-green-500/30 rounded-lg px-3 py-1.5 text-center">
-              <div className="text-[9px] text-green-400 uppercase tracking-wider">Earned</div>
-              <div className="text-[13px] font-bold text-green-400">{prediction.points} pts</div>
+            <div className="bg-green-500/10 border border-green-500/30 rounded-lg px-2 sm:px-3 py-1 text-center">
+              <div className="text-[8px] sm:text-[9px] text-green-400 uppercase tracking-wider">Earned</div>
+              <div className="text-[12px] sm:text-[13px] font-bold text-green-400">{prediction.points}</div>
             </div>
           )}
         </div>
 
-        {/* Over / Under 2.5 selection */}
-        <div className="mt-3">
-          <div className="text-[9px] text-[--muted] uppercase tracking-wider text-center mb-1.5">Over / Under 2.5 goals</div>
+        {/* Over / Under 2.5 */}
+        <div className="mt-2.5">
+          <div className="text-[9px] text-[--muted] uppercase tracking-wider text-center mb-1">Over / Under 2.5</div>
           <div className="flex gap-1.5 justify-center">
             {[{ val: "over", label: "Over 2.5" }, { val: "under", label: "Under 2.5" }].map((o) => (
               <button key={o.val} disabled={isInputDisabled} onClick={() => setOverUnder(o.val)}
-                className={`flex-1 max-w-[160px] py-1.5 px-2 rounded-lg text-[11px] font-semibold border-[1.5px] transition-all ${
+                className={`flex-1 max-w-[140px] py-1.5 px-2 rounded-lg text-[11px] font-semibold border-[1.5px] transition-all ${
                   overUnder === o.val
-                    ? o.val === "over"
-                      ? "bg-green-500/15 border-green-500 text-green-400"
-                      : "bg-blue-500/15 border-blue-500 text-blue-400"
+                    ? o.val === "over" ? "bg-green-500/15 border-green-500 text-green-400" : "bg-blue-500/15 border-blue-500 text-blue-400"
                     : "bg-[--bg] border-[--border] text-[--muted]"
                 } disabled:cursor-not-allowed`}>{o.label}</button>
             ))}
@@ -175,43 +172,41 @@ export default function MatchCard({ match, prediction, userId, onUpdate }) {
         </div>
 
         {/* First to Score */}
-        <div className="mt-3">
-          <div className="text-[9px] text-[--muted] uppercase tracking-wider text-center mb-1.5">First team to score</div>
-          <div className="flex gap-1.5 justify-center">
+        <div className="mt-2.5">
+          <div className="text-[9px] text-[--muted] uppercase tracking-wider text-center mb-1">First team to score</div>
+          <div className="flex gap-1 sm:gap-1.5 justify-center">
             {ftsOptions.map((o) => (
               <button key={o.val} disabled={isInputDisabled} onClick={() => setFirstToScore(o.val)}
-                className={`flex-1 max-w-[140px] py-1.5 px-1 rounded-lg text-[11px] font-semibold border-[1.5px] transition-all truncate ${
+                className={`flex-1 py-1.5 px-1 rounded-lg text-[10px] sm:text-[11px] font-semibold border-[1.5px] transition-all truncate ${
                   firstToScore === o.val ? "bg-green-500/15 border-green-500 text-green-400" : "bg-[--bg] border-[--border] text-[--muted]"
                 } disabled:cursor-not-allowed`}>{o.label}</button>
             ))}
           </div>
         </div>
 
-        {/* Saved prediction display + edit button */}
+        {/* Saved prediction + edit */}
         {saved && !editing && (
-          <div className="mt-3 py-2 px-3 rounded-xl bg-blue-500/10 border border-blue-500/25 flex items-center justify-between">
-            <span className="text-blue-400 text-[11px] font-bold">
-              🔒 {prediction?.home_score} : {prediction?.away_score} · {ouLabel} · First: {ftsLabel}
+          <div className="mt-2.5 py-2 px-2.5 rounded-xl bg-blue-500/10 border border-blue-500/25 flex items-center justify-between gap-2">
+            <span className="text-blue-400 text-[10px] sm:text-[11px] font-bold truncate">
+              🔒 {prediction?.home_score}:{prediction?.away_score} · {ouLabel} · {ftsLabel}
             </span>
             {!isExpired && (
               <button onClick={startEditing}
-                className="text-[10px] font-bold text-amber-400 bg-amber-500/15 border border-amber-500/30 px-2.5 py-1 rounded-lg hover:bg-amber-500/25 transition-colors">
-                ✏️ Edit
+                className="text-[10px] font-bold text-amber-400 bg-amber-500/15 border border-amber-500/30 px-2 py-1 rounded-lg hover:bg-amber-500/25 shrink-0">
+                ✏️
               </button>
             )}
           </div>
         )}
 
-        {/* Editing: save/cancel */}
+        {/* Editing */}
         {editing && (
-          <div className="mt-3 flex gap-2">
+          <div className="mt-2.5 flex gap-2">
             <button onClick={cancelEdit}
-              className="flex-1 py-2.5 rounded-xl text-xs font-bold border border-[--border] text-[--muted] hover:text-[--text] transition-colors">
-              Cancel
-            </button>
+              className="flex-1 py-2 rounded-xl text-xs font-bold border border-[--border] text-[--muted]">Cancel</button>
             <button onClick={savePrediction} disabled={!canSave || saving}
-              className="flex-1 py-2.5 rounded-xl text-xs font-bold bg-gradient-to-r from-amber-500 to-amber-600 text-white hover:brightness-110 disabled:opacity-40">
-              {saving ? "Saving..." : "💾 SAVE CHANGES"}
+              className="flex-1 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-amber-500 to-amber-600 text-white disabled:opacity-40">
+              {saving ? "Saving..." : "💾 SAVE"}
             </button>
           </div>
         )}
@@ -219,10 +214,10 @@ export default function MatchCard({ match, prediction, userId, onUpdate }) {
         {/* First-time lock */}
         {!saved && !isExpired && (
           <button disabled={!canSave || saving} onClick={savePrediction}
-            className={`w-full mt-3 py-2.5 rounded-xl text-xs font-bold tracking-wide transition-all ${
-              canSave ? "bg-gradient-to-r from-green-500 to-green-600 text-white hover:brightness-110" : "bg-[--surface] border border-[--border] text-[--muted] cursor-not-allowed"
+            className={`w-full mt-2.5 py-2.5 rounded-xl text-xs font-bold tracking-wide transition-all ${
+              canSave ? "bg-gradient-to-r from-green-500 to-green-600 text-white" : "bg-[--surface] border border-[--border] text-[--muted] cursor-not-allowed"
             }`}>
-            {saving ? "Saving..." : !userId ? "Sign in to predict" : canSave ? "🔒 LOCK PREDICTION" : "Select O/U and first to score to lock"}
+            {saving ? "Saving..." : !userId ? "Sign in to predict" : canSave ? "🔒 LOCK PREDICTION" : "Select O/U and first to score"}
           </button>
         )}
 
