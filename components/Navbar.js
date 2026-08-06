@@ -3,11 +3,13 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import InviteModal from "./InviteModal";
 
 export default function Navbar() {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [showInvite, setShowInvite] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
 
@@ -95,6 +97,11 @@ export default function Navbar() {
                       👤 Edit Profile
                     </Link>
 
+                    <button onClick={() => { setMenuOpen(false); setShowInvite(true); }}
+                      style={{ display:"block", width:"100%", textAlign:"left", padding:"10px 0", fontSize:"14px", color:"#22c55e", background:"none", border:"none", cursor:"pointer" }}>
+                      🎯 Invite friends
+                    </button>
+
                     <div className="md:hidden" style={{ borderTop:"1px solid #1c2a48", marginTop:"4px", paddingTop:"4px" }}>
                       {links.map((l) => (
                         <Link key={l.href} href={l.href} onClick={() => setMenuOpen(false)}
@@ -117,6 +124,10 @@ export default function Navbar() {
           )}
         </div>
       </div>
+
+      {showInvite && (
+        <InviteModal username={profile?.username} onClose={() => setShowInvite(false)} />
+      )}
     </nav>
   );
 }
