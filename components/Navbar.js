@@ -46,6 +46,7 @@ export default function Navbar() {
   if (profile?.is_admin) links.push({ href: "/admin", label: "⚙ Admin" });
 
   return (
+    <>
     <nav className="sticky top-0 z-50 bg-[--surface] border-b border-[--border] backdrop-blur-sm">
       <div className="max-w-2xl mx-auto px-4 flex items-center justify-between h-14">
         <Link href="/" className="flex items-center gap-2">
@@ -124,10 +125,11 @@ export default function Navbar() {
           )}
         </div>
       </div>
-
-      {showInvite && (
-        <InviteModal username={profile?.username} onClose={() => setShowInvite(false)} />
-      )}
     </nav>
+
+    {showInvite && (
+      <InviteModal username={profile?.username} onClose={() => setShowInvite(false)} />
+    )}
+    </>
   );
 }
