@@ -1,147 +1,203 @@
 "use client";
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase";
+import { getCurrentWeek, formatWeekRange } from "@/lib/utils";
+import MatchCard from "@/components/MatchCard";
+import ShareCard from "@/components/ShareCard";
 
-export default function RulesPage() {
-  const scoring = [
-    { label: "Correct Score", pts: 15, desc: "Exact home & away score match", icon: "🎯", color: "#22c55e" },
-    { label: "Goal Difference", pts: 10, desc: "Correct margin between teams", icon: "📐", color: "#3b82f6" },
-    { label: "Correct Result", pts: 5, desc: "Right outcome: Home Win, Draw, or Away Win", icon: "✅", color: "#06b6d4" },
-    { label: "Home Score", pts: 5, desc: "Home team goals correct", icon: "🏠", color: "#8b5cf6" },
-    { label: "Away Score", pts: 5, desc: "Away team goals correct", icon: "✈️", color: "#a855f7" },
-    { label: "Over / Under 2.5", pts: 5, desc: "Your O/U pick matches the actual total goals", icon: "📊", color: "#f59e0b" },
-    { label: "First to Score", pts: 5, desc: "Which team scores first", icon: "⚡", color: "#ef4444" },
-  ];
+export default function Home() {
+  const [user, setUser] = useState(null);
+  const [profile, setProfile] = useState(null);
+  const [weeks, setWeeks] = useState([]);
+  const [selectedWeek, setSelectedWeek] = useState(null);
+  const [matches, setMatches] = useState([]);
+  const [predictions, setPredictions] = useState({});
+  const [showShare, setShowShare] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  const rules = [
-    "10 football matches are selected each week by the organizer.",
-    "You must predict the exact score, choose Over or Under 2.5 goals, and select which team scores first.",
-    "Over/Under 2.5 is your own choice — you can predict 2-1 but still pick Under if you believe the match could go differently.",
-    "Predictions can be edited anytime before kick-off. Once the match starts, they lock automatically.",
-    "Correct Result means you predicted the right outcome (Home Win / Draw / Away Win), even if the exact score is wrong.",
-    "Points are cumulative — weekly scores roll into your monthly and all-time total.",
-    "Weeks run Monday to Sunday. Months follow the calendar. A week that crosses two months (e.g. Aug 31 – Sep 6) may count in one week but split across two months — so weekly and monthly standings can differ.",
-    "Weekly prizes go to the top 3 predictors. Monthly prizes to the top 10.",
-    "In case of a tie, the player who locked predictions earlier wins.",
-    "Maximum possible: 50 points per game, 500 points per week.",
-  ];
+  const current = getCurrentWeek();
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      setUser(data.user);
+      if (data.user) {
+        supabase.from("profiles").select("username").eq("id", data.user.id).single()
+          .then(({ data: p }) => { if (p) setProfile(p); });
+      }
+    });
+    loadWeeks();
+  }, []);
+
+  useEffect(() => {
+    if (selectedWeek !== null) loadMatches();
+  }, [selectedWeek]);
+
+  useEffect(() => {
+    if (user && matches.length > 0) loadPredictions();
+  }, [user, matches]);
+
+  async function loadWeeks() {
+    const { data } = await supabase.from("weeks").select("*")
+      .order("year", { ascending: false }).order("week_number", { ascending: false });
+    const wks = data || [];
+    setWeeks(wks);
+
+    // Default to current week, or latest week if current doesn't exist
+    const cur = wks.find(w => w.week_number === current.week && w.year === current.year);
+    setSelectedWeek(cur?.id || wks[0]?.id || null);
+    setLoading(false);
+  }
+
+  async function loadMatches() {
+    if (!selectedWeek) { setMatches([]); return; }
+    const { data } = await supabase
+      .from("matches").select("*")
+      .eq("week_id", selectedWeek)
+      .order("kick_off", { ascending: true });
+    setMatches(data || []);
+  }
+
+  async function loadPredictions() {
+    if (!user) return;
+    const matchIds = matches.map(m => m.id);
+    if (matchIds.length === 0) { setPredictions({}); return; }
+    const { data } = await supabase
+      .from("predictions").select("*")
+      .eq("user_id", user.id)
+      .in("match_id", matchIds);
+    const map = {};
+    (data || []).forEach(p => map[p.match_id] = p);
+    setPredictions(map);
+  }
+
+  const lockedCount = Object.keys(predictions).length;
+  const now = Date.now();
+  const missedCount = matches.filter(m => new Date(m.kick_off).getTime() <= now && !predictions[m.id]).length;
+  const openCount = matches.filter(m => new Date(m.kick_off).getTime() > now && !predictions[m.id]).length;
+
+  // Find selected week info
+  const selectedWeekInfo = weeks.find(w => w.id === selectedWeek);
+  const isCurrentWeek = selectedWeekInfo && selectedWeekInfo.week_number === current.week && selectedWeekInfo.year === current.year;
+
+  if (loading) {
+    return <div className="text-center py-20 text-[--muted]">Loading...</div>;
+  }
 
   return (
-    <div className="py-4 space-y-4">
-      <h1 className="text-lg font-black">📋 Rules & Scoring</h1>
+    <div className="py-4">
+      {/* Week selector */}
+      {weeks.length > 0 && (
+        <div className="mb-4">
+          <select
+            value={selectedWeek || ""}
+            onChange={e => { setSelectedWeek(parseInt(e.target.value)); setPredictions({}); }}
+            className="input-dark w-full text-sm font-semibold cursor-pointer"
+          >
+            {weeks.map(w => {
+              const isCur = w.week_number === current.week && w.year === current.year;
+              return (
+                <option key={w.id} value={w.id}>
+                  {isCur ? "📍 Current Week" : `Week ${w.week_number}`} — {formatWeekRange(w.week_number, w.year)}
+                </option>
+              );
+            })}
+          </select>
+        </div>
+      )}
 
-      {/* Monthly Prizes */}
-      <div className="card overflow-hidden">
-        <div className="px-4 py-3 border-b border-[--border]" style={{ background: "linear-gradient(135deg, rgba(245,158,11,0.08), rgba(34,197,94,0.08))" }}>
-          <span className="text-sm font-bold">🏆 Monthly Prizes</span>
-        </div>
-        <div className="p-4">
-          <div className="flex gap-2 justify-center mb-4">
-            {[
-              { place: "2nd", prize: "15", emoji: "🥈", color: "#94a3b8", size: "h-28" },
-              { place: "1st", prize: "20", emoji: "🥇", color: "#f59e0b", size: "h-36" },
-              { place: "3rd", prize: "10", emoji: "🥉", color: "#b45309", size: "h-24" },
-            ].map((p, i) => (
-              <div key={i} className={`flex-1 flex flex-col items-center justify-end ${p.size}`}>
-                <span className="text-2xl mb-1">{p.emoji}</span>
-                <span className="text-lg font-black" style={{ color: p.color }}>{p.prize} AZN</span>
-                <span className="text-[10px] text-[--muted] font-semibold">{p.place} place</span>
-              </div>
-            ))}
+      {/* Monthly prize banner */}
+      {weeks.length > 0 && (
+        <div className="card p-2.5 mb-3" style={{ background: "linear-gradient(135deg, rgba(245,158,11,0.06), rgba(34,197,94,0.06))" }}>
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold text-amber-400">🏆 Monthly Prizes</span>
+            <div className="flex gap-2 text-[10px] font-bold">
+              <span className="text-amber-400">🥇 20 AZN</span>
+              <span className="text-slate-400">🥈 15 AZN</span>
+              <span className="text-orange-600">🥉 10 AZN</span>
+            </div>
           </div>
-          <div className="text-center text-[11px] text-[--muted] border-t border-[--border] pt-3">
-            Top 3 predictors of each month win cash prizes.<br/>
-            Winners receive their prizes within 5 days of the next month.
-          </div>
+          <div className="text-[9px] text-[--muted] mt-1">Prizes activate when we reach 100 registered users.</div>
         </div>
-      </div>
+      )}
 
-      {/* Points Breakdown */}
-      <div className="card overflow-hidden">
-        <div className="flex items-center justify-between px-4 py-3 border-b border-[--border]">
-          <span className="text-sm font-bold">Points Breakdown</span>
-          <span className="text-xs font-bold text-amber-400">Max 50 pts / game</span>
-        </div>
-        {scoring.map((s, i) => (
-          <div key={i} className="flex items-center gap-3 px-4 py-2.5 border-b border-[--border] last:border-0">
-            <span className="text-lg">{s.icon}</span>
-            <div className="flex-1">
-              <div className="text-xs font-semibold">{s.label}</div>
-              <div className="text-[10px] text-[--muted]">{s.desc}</div>
+      {/* Progress bar */}
+      {matches.length > 0 && (
+        <div className="card p-3.5 mb-4 flex items-center gap-3">
+          <div className="flex-1">
+            <div className="text-xs font-bold mb-1.5">
+              {isCurrentWeek ? "📍 Current Week" : `Week ${selectedWeekInfo?.week_number || ""}`}
             </div>
-            <div className="text-sm font-extrabold px-3 py-1 rounded-md"
-              style={{ backgroundColor: s.color + "20", color: s.color }}>
-              +{s.pts}
+            <div className="h-1.5 rounded-full bg-[--surface] overflow-hidden">
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-green-500 to-green-600 transition-all duration-500"
+                style={{ width: `${matches.length > 0 ? (lockedCount / matches.length) * 100 : 0}%` }}
+              />
+            </div>
+            <div className="flex gap-3 mt-1.5 text-[10px]">
+              <span className="text-green-400 font-semibold">✓ {lockedCount} locked</span>
+              {missedCount > 0 && <span className="text-red-400 font-semibold">✕ {missedCount} missed</span>}
+              {openCount > 0 && <span className="text-[--muted]">{openCount} open</span>}
+              {lockedCount === matches.length && matches.length > 0 && <span className="text-green-400">All locked! Good luck 🍀</span>}
             </div>
           </div>
-        ))}
-        <div className="flex items-center justify-between px-4 py-3 bg-[--surface] border-t border-[--border]">
-          <span className="text-xs font-bold text-amber-400">🏆 Weekly Maximum (10 games)</span>
-          <span className="text-lg font-black text-amber-400">500 pts</span>
+          <div className="text-center">
+            <div className="text-2xl font-black text-green-400">{lockedCount}</div>
+            <div className="text-[7px] text-[--muted] uppercase tracking-wider">of {matches.length}</div>
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* Example */}
-      <div className="card p-4">
-        <h3 className="text-sm font-bold mb-3">💡 Example</h3>
-        <div className="bg-[--bg] rounded-xl p-3.5 text-xs space-y-2">
-          <div className="flex justify-between">
-            <span className="text-[--muted]">Your prediction:</span>
-            <span className="font-bold">Arsenal 2 — 1 Chelsea · Over 2.5 · First: Arsenal</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-[--muted]">Actual result:</span>
-            <span className="font-bold">Arsenal 2 — 1 Chelsea · Total: 3 · First: Arsenal</span>
-          </div>
-          <div className="border-t border-[--border] pt-2 space-y-1">
-            <div className="flex justify-between">
-              <span className="text-[--muted]">Correct Score (2-1 = 2-1) ✓</span>
-              <span className="text-green-400">+15</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-[--muted]">Goal Diff (+1 = +1) ✓</span>
-              <span className="text-green-400">+10</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-[--muted]">Correct Result (Home = Home) ✓</span>
-              <span className="text-green-400">+5</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-[--muted]">Home Score (2 = 2) ✓</span>
-              <span className="text-green-400">+5</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-[--muted]">Away Score (1 = 1) ✓</span>
-              <span className="text-green-400">+5</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-[--muted]">O/U 2.5 (Over = Over, total 3) ✓</span>
-              <span className="text-green-400">+5</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-[--muted]">First to Score (Arsenal = Arsenal) ✓</span>
-              <span className="text-green-400">+5</span>
-            </div>
-            <div className="flex justify-between border-t border-[--border] pt-2 font-bold">
-              <span>Total — PERFECT SCORE! 🎯</span>
-              <span className="text-green-400">50 pts</span>
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* Share button — show when there are scored predictions */}
+      {matches.length > 0 && Object.values(predictions).some(p => p.points != null) && (
+        <button onClick={() => setShowShare(true)}
+          className="w-full mb-4 py-2.5 rounded-xl text-xs font-bold border border-[--border] text-[--muted] hover:border-green-500/50 hover:text-green-400 transition-all flex items-center justify-center gap-2">
+          📤 Share my score
+        </button>
+      )}
 
-      {/* Rules */}
-      <div className="card p-4">
-        <h3 className="text-sm font-bold mb-3">📌 Tournament Rules</h3>
-        <div className="space-y-0">
-          {rules.map((r, i) => (
-            <div key={i} className="flex gap-2.5 py-2 border-b border-[--border] last:border-0">
-              <span className="w-5 h-5 rounded-md bg-green-500/10 flex items-center justify-center text-[10px] font-extrabold text-green-400 shrink-0 mt-0.5">
-                {i + 1}
-              </span>
-              <span className="text-xs text-[--muted] leading-relaxed">{r}</span>
-            </div>
+      {/* Share modal */}
+      {showShare && (
+        <ShareCard
+          weekLabel={isCurrentWeek ? "Current Week" : `Week ${selectedWeekInfo?.week_number || ""}`}
+          matches={matches}
+          predictions={predictions}
+          username={profile?.username}
+          onClose={() => setShowShare(false)}
+        />
+      )}
+
+      {/* No weeks at all */}
+      {weeks.length === 0 && (
+        <div className="card p-12 text-center">
+          <div className="text-5xl mb-3">⚽</div>
+          <h3 className="text-lg font-bold mb-1.5">No matches yet</h3>
+          <p className="text-xs text-[--muted]">The admin will add this week&#39;s matches soon. Check back later!</p>
+        </div>
+      )}
+
+      {/* No matches in selected week */}
+      {weeks.length > 0 && matches.length === 0 && (
+        <div className="card p-12 text-center">
+          <div className="text-5xl mb-3">📋</div>
+          <h3 className="text-lg font-bold mb-1.5">No matches this week</h3>
+          <p className="text-xs text-[--muted]">Try selecting a different week from the dropdown above.</p>
+        </div>
+      )}
+
+      {/* Match list */}
+      {matches.length > 0 && (
+        <div className="flex flex-col gap-3">
+          {matches.map(m => (
+            <MatchCard
+              key={m.id}
+              match={m}
+              prediction={predictions[m.id]}
+              userId={user?.id}
+              onUpdate={loadPredictions}
+            />
           ))}
         </div>
-      </div>
+      )}
     </div>
   );
 }
