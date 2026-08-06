@@ -28,6 +28,32 @@ export default function RulesPage() {
     <div className="py-4 space-y-4">
       <h1 className="text-lg font-black">📋 Rules & Scoring</h1>
 
+      {/* Monthly Prizes */}
+      <div className="card overflow-hidden">
+        <div className="px-4 py-3 border-b border-[--border]" style={{ background: "linear-gradient(135deg, rgba(245,158,11,0.08), rgba(34,197,94,0.08))" }}>
+          <span className="text-sm font-bold">🏆 Monthly Prizes</span>
+        </div>
+        <div className="p-4">
+          <div className="flex gap-2 justify-center mb-4">
+            {[
+              { place: "2nd", prize: "15", emoji: "🥈", color: "#94a3b8", size: "h-28" },
+              { place: "1st", prize: "20", emoji: "🥇", color: "#f59e0b", size: "h-36" },
+              { place: "3rd", prize: "10", emoji: "🥉", color: "#b45309", size: "h-24" },
+            ].map((p, i) => (
+              <div key={i} className={`flex-1 flex flex-col items-center justify-end ${p.size}`}>
+                <span className="text-2xl mb-1">{p.emoji}</span>
+                <span className="text-lg font-black" style={{ color: p.color }}>{p.prize} AZN</span>
+                <span className="text-[10px] text-[--muted] font-semibold">{p.place} place</span>
+              </div>
+            ))}
+          </div>
+          <div className="text-center text-[11px] text-[--muted] border-t border-[--border] pt-3">
+            Top 3 predictors of each month win cash prizes.<br/>
+            Winners receive their prizes within 5 days of the next month.
+          </div>
+        </div>
+      </div>
+
       {/* Points Breakdown */}
       <div className="card overflow-hidden">
         <div className="flex items-center justify-between px-4 py-3 border-b border-[--border]">
