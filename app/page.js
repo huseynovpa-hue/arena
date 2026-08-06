@@ -107,13 +107,16 @@ export default function Home() {
 
       {/* Monthly prize banner */}
       {weeks.length > 0 && (
-        <div className="card p-2.5 mb-3 flex items-center justify-between" style={{ background: "linear-gradient(135deg, rgba(245,158,11,0.06), rgba(34,197,94,0.06))" }}>
-          <span className="text-[11px] font-bold text-amber-400">🏆 Monthly Prizes</span>
-          <div className="flex gap-2 text-[10px] font-bold">
-            <span className="text-amber-400">🥇20</span>
-            <span className="text-slate-400">🥈15</span>
-            <span className="text-orange-600">🥉10 AZN</span>
+        <div className="card p-2.5 mb-3" style={{ background: "linear-gradient(135deg, rgba(245,158,11,0.06), rgba(34,197,94,0.06))" }}>
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold text-amber-400">🏆 Monthly Prizes</span>
+            <div className="flex gap-2 text-[10px] font-bold">
+              <span className="text-amber-400">🥇 20 AZN</span>
+              <span className="text-slate-400">🥈 15 AZN</span>
+              <span className="text-orange-600">🥉 10 AZN</span>
+            </div>
           </div>
+          <div className="text-[9px] text-[--muted] mt-1">Prizes activate when we reach 100 registered users.</div>
         </div>
       )}
 
