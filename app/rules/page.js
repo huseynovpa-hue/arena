@@ -18,6 +18,7 @@ export default function RulesPage() {
     "Predictions can be edited anytime before kick-off. Once the match starts, they lock automatically.",
     "Correct Result means you predicted the right outcome (Home Win / Draw / Away Win), even if the exact score is wrong.",
     "Points are cumulative — weekly scores roll into your monthly and all-time total.",
+    "Weeks run Monday to Sunday. Months follow the calendar. A week that crosses two months (e.g. Aug 31 – Sep 6) may count in one week but split across two months — so weekly and monthly standings can differ.",
     "Weekly prizes go to the top 3 predictors. Monthly prizes to the top 10.",
     "In case of a tie, the player who locked predictions earlier wins.",
     "Maximum possible: 50 points per game, 500 points per week.",
