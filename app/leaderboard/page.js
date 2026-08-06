@@ -1,87 +1,82 @@
 "use client";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { getCurrentWeek, formatWeekRange } from "@/lib/utils";
 
 export default function LeaderboardPage() {
   const [players, setPlayers] = useState([]);
   const [weeks, setWeeks] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState("all");
+  const [filter, setFilter] = useState("all"); // "all", "month", "week"
   const [selectedMonth, setSelectedMonth] = useState(() => {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
   });
+  const [selectedWeek, setSelectedWeek] = useState(null);
+
+  const current = getCurrentWeek();
 
   useEffect(() => { loadWeeks(); loadLeaderboard(); }, []);
-  useEffect(() => { loadLeaderboard(); }, [filter, selectedMonth]);
+  useEffect(() => { loadLeaderboard(); }, [filter, selectedMonth, selectedWeek]);
 
   async function loadWeeks() {
     const { data } = await supabase.from("weeks").select("*")
       .order("year", { ascending: false }).order("week_number", { ascending: false });
     setWeeks(data || []);
+    // Default to current week
+    if (data && data.length > 0) {
+      const cur = data.find(w => w.week_number === current.week && w.year === current.year);
+      setSelectedWeek(cur?.id || data[0].id);
+    }
   }
 
   async function loadLeaderboard() {
     setLoading(true);
 
-    // Always start with ALL profiles
     const { data: allProfiles } = await supabase
-      .from("profiles")
-      .select("id, username, avatar_url");
-
+      .from("profiles").select("id, username, avatar_url");
     if (!allProfiles) { setPlayers([]); setLoading(false); return; }
 
     if (filter === "all") {
-      // Use the DB view for all-time
       const { data } = await supabase.from("leaderboard").select("*");
       setPlayers(data || []);
       setLoading(false);
       return;
     }
 
-    // Get match IDs for the selected period
     let matchIds = [];
 
     if (filter === "month") {
       const [year, month] = selectedMonth.split("-");
       const startDate = new Date(year, month - 1, 1).toISOString();
       const endDate = new Date(year, month, 0, 23, 59, 59).toISOString();
-      const { data: monthMatches } = await supabase
+      const { data: matches } = await supabase
         .from("matches").select("id")
         .gte("kick_off", startDate).lte("kick_off", endDate);
-      matchIds = (monthMatches || []).map(m => m.id);
-    } else {
-      // Weekly — filter is the week id
-      const { data: weekMatches } = await supabase
-        .from("matches").select("id").eq("week_id", filter);
-      matchIds = (weekMatches || []).map(m => m.id);
+      matchIds = (matches || []).map(m => m.id);
+    } else if (filter === "week" && selectedWeek) {
+      const { data: matches } = await supabase
+        .from("matches").select("id").eq("week_id", selectedWeek);
+      matchIds = (matches || []).map(m => m.id);
     }
 
-    // No matches in this period — show empty state
     if (matchIds.length === 0) {
       setPlayers([]);
       setLoading(false);
       return;
     }
 
-    // Get predictions for those matches
-    let preds = [];
-    if (matchIds.length > 0) {
-      const { data } = await supabase
-        .from("predictions").select("user_id, points")
-        .in("match_id", matchIds).not("points", "is", null);
-      preds = data || [];
-    }
+    const { data: preds } = await supabase
+      .from("predictions").select("user_id, points")
+      .in("match_id", matchIds).not("points", "is", null);
 
-    // Aggregate by user
     const userMap = {};
-    preds.forEach(p => {
+    (preds || []).forEach(p => {
       if (!userMap[p.user_id]) userMap[p.user_id] = { total: 0, count: 0 };
       userMap[p.user_id].total += p.points || 0;
       userMap[p.user_id].count += 1;
     });
 
-    // Build result for ALL profiles
     const result = allProfiles.map(p => ({
       id: p.id,
       username: p.username,
@@ -115,21 +110,19 @@ export default function LeaderboardPage() {
     <div className="py-4">
       <h1 className="text-lg font-black mb-4">🏆 Leaderboard</h1>
 
-      {/* Filters */}
-      <div className="flex gap-1.5 mb-3 flex-wrap">
-        <button onClick={() => setFilter("all")}
-          className={`px-4 py-2 rounded-full text-xs font-bold border transition-all ${
-            filter === "all" ? "bg-green-500/15 border-green-500 text-green-400" : "border-[--border] text-[--muted]"
-          }`}>All Time</button>
-        <button onClick={() => setFilter("month")}
-          className={`px-4 py-2 rounded-full text-xs font-bold border transition-all ${
-            filter === "month" ? "bg-amber-500/15 border-amber-500 text-amber-400" : "border-[--border] text-[--muted]"
-          }`}>Monthly</button>
-        {weeks.map(w => (
-          <button key={w.id} onClick={() => setFilter(w.id)}
+      {/* Main filters */}
+      <div className="flex gap-1.5 mb-3">
+        {["all", "weekly", "month"].map(f => (
+          <button key={f} onClick={() => setFilter(f === "weekly" ? "week" : f)}
             className={`px-4 py-2 rounded-full text-xs font-bold border transition-all ${
-              filter === w.id ? "bg-blue-500/15 border-blue-500 text-blue-400" : "border-[--border] text-[--muted]"
-            }`}>Week {w.week_number}</button>
+              (f === "weekly" ? "week" : f) === filter
+                ? f === "all" ? "bg-green-500/15 border-green-500 text-green-400"
+                  : f === "weekly" ? "bg-blue-500/15 border-blue-500 text-blue-400"
+                  : "bg-amber-500/15 border-amber-500 text-amber-400"
+                : "border-[--border] text-[--muted]"
+            }`}>
+            {f === "all" ? "All Time" : f === "weekly" ? "Weekly" : "Monthly"}
+          </button>
         ))}
       </div>
 
@@ -145,6 +138,27 @@ export default function LeaderboardPage() {
         </div>
       )}
 
+      {/* Week picker */}
+      {filter === "week" && (
+        <div className="mb-3">
+          {weeks.length === 0 ? (
+            <p className="text-xs text-[--muted]">No weeks found.</p>
+          ) : (
+            <select value={selectedWeek || ""} onChange={e => setSelectedWeek(parseInt(e.target.value))}
+              className="input-dark w-auto pr-8 text-xs cursor-pointer" style={{ maxWidth: 280 }}>
+              {weeks.map(w => {
+                const isCurrent = w.week_number === current.week && w.year === current.year;
+                return (
+                  <option key={w.id} value={w.id}>
+                    {isCurrent ? "📍 Current Week" : `Week ${w.week_number}`} — {formatWeekRange(w.week_number, w.year)}
+                  </option>
+                );
+              })}
+            </select>
+          )}
+        </div>
+      )}
+
       {loading ? (
         <div className="py-20 text-center text-[--muted]">Loading...</div>
       ) : players.length === 0 ? (
@@ -152,7 +166,7 @@ export default function LeaderboardPage() {
           <div className="text-5xl mb-3">🏆</div>
           <h3 className="text-lg font-bold mb-1.5">No matches found</h3>
           <p className="text-xs text-[--muted]">
-            {filter === "month" ? "No matches were played in this month." : filter === "all" ? "Players will appear here once they register." : "No matches in this week yet."}
+            {filter === "month" ? "No matches were played in this month." : filter === "week" ? "No matches in this week." : "Players will appear here once they register."}
           </p>
         </div>
       ) : (
