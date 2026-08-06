@@ -8,6 +8,7 @@ export default function LeaderboardPage() {
   const [weeks, setWeeks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all"); // "all", "month", "week"
+  const [noResults, setNoResults] = useState(null); // null, "none", "pending"
   const [selectedMonth, setSelectedMonth] = useState(() => {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
@@ -40,31 +41,45 @@ export default function LeaderboardPage() {
     if (filter === "all") {
       const { data } = await supabase.from("leaderboard").select("*");
       setPlayers(data || []);
+      setNoResults(null);
       setLoading(false);
       return;
     }
 
     let matchIds = [];
+    let hasFinished = false;
 
     if (filter === "month") {
       const [year, month] = selectedMonth.split("-");
       const startDate = new Date(year, month - 1, 1).toISOString();
       const endDate = new Date(year, month, 0, 23, 59, 59).toISOString();
       const { data: matches } = await supabase
-        .from("matches").select("id")
+        .from("matches").select("id, status")
         .gte("kick_off", startDate).lte("kick_off", endDate);
       matchIds = (matches || []).map(m => m.id);
+      hasFinished = (matches || []).some(m => m.status === "finished");
     } else if (filter === "week" && selectedWeek) {
       const { data: matches } = await supabase
-        .from("matches").select("id").eq("week_id", selectedWeek);
+        .from("matches").select("id, status").eq("week_id", selectedWeek);
       matchIds = (matches || []).map(m => m.id);
+      hasFinished = (matches || []).some(m => m.status === "finished");
     }
 
     if (matchIds.length === 0) {
       setPlayers([]);
+      setNoResults("none");
       setLoading(false);
       return;
     }
+
+    if (!hasFinished) {
+      setPlayers([]);
+      setNoResults("pending");
+      setLoading(false);
+      return;
+    }
+
+    setNoResults(null);
 
     const { data: preds } = await supabase
       .from("predictions").select("user_id, points")
@@ -163,10 +178,16 @@ export default function LeaderboardPage() {
         <div className="py-20 text-center text-[--muted]">Loading...</div>
       ) : players.length === 0 ? (
         <div className="card p-12 text-center">
-          <div className="text-5xl mb-3">🏆</div>
-          <h3 className="text-lg font-bold mb-1.5">No matches found</h3>
+          <div className="text-5xl mb-3">{noResults === "pending" ? "⏳" : "🏆"}</div>
+          <h3 className="text-lg font-bold mb-1.5">
+            {noResults === "pending" ? "Results are on the way" : "No matches found"}
+          </h3>
           <p className="text-xs text-[--muted]">
-            {filter === "month" ? "No matches were played in this month." : filter === "week" ? "No matches in this week." : "Players will appear here once they register."}
+            {noResults === "pending"
+              ? "Standings will be available once match results are entered."
+              : filter === "month" ? "No matches were played in this month."
+              : filter === "week" ? "No matches in this week."
+              : "Players will appear here once they register."}
           </p>
         </div>
       ) : (
