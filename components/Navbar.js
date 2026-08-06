@@ -63,40 +63,49 @@ export default function Navbar() {
           ))}
         </div>
 
-        <div className="flex items-center gap-2 relative">
+        <div className="flex items-center gap-2">
           {user ? (
             <>
               <button onClick={() => setMenuOpen(!menuOpen)}
-                className="w-9 h-9 rounded-full overflow-hidden bg-green-500/20 flex items-center justify-center text-sm border-2 border-transparent hover:border-green-500/50 transition-colors">
+                className="w-9 h-9 rounded-full overflow-hidden bg-green-500/20 flex items-center justify-center text-sm border-2 border-transparent hover:border-green-500/50 transition-colors"
+                style={{ position: "relative", zIndex: 100 }}>
                 {profile?.avatar_url ? <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" /> : "👤"}
               </button>
               {menuOpen && (
                 <>
-                  <div className="fixed inset-0 z-[60] bg-black/40" onClick={() => setMenuOpen(false)} />
-                  <div className="fixed top-16 right-3 left-3 sm:left-auto sm:right-4 sm:w-52 z-[70] bg-[--card] border border-[--border] rounded-xl p-4 shadow-2xl">
-                    <div className="flex items-center gap-3 mb-3 pb-3 border-b border-[--border]">
-                      <div className="w-10 h-10 rounded-full overflow-hidden bg-[--surface] flex items-center justify-center text-sm shrink-0">
-                        {profile?.avatar_url ? <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" /> : "👤"}
+                  <div onClick={() => setMenuOpen(false)}
+                    style={{ position:"fixed", top:0, left:0, right:0, bottom:0, background:"rgba(0,0,0,0.6)", zIndex:9998 }} />
+                  <div style={{
+                    position:"fixed", top:"60px", left:"12px", right:"12px", zIndex:9999,
+                    background:"#151d32", border:"1px solid #1c2a48", borderRadius:"16px",
+                    padding:"16px", boxShadow:"0 20px 60px rgba(0,0,0,0.5)",
+                  }}>
+                    <div style={{ display:"flex", alignItems:"center", gap:"12px", marginBottom:"12px", paddingBottom:"12px", borderBottom:"1px solid #1c2a48" }}>
+                      <div style={{ width:44, height:44, borderRadius:"50%", overflow:"hidden", background:"#0f1525", display:"flex", alignItems:"center", justifyContent:"center", fontSize:"16px", flexShrink:0 }}>
+                        {profile?.avatar_url ? <img src={profile.avatar_url} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }} /> : "👤"}
                       </div>
-                      <div className="min-w-0">
-                        <p className="text-sm font-bold text-[--text] truncate">{profile?.username}</p>
-                        <p className="text-[11px] text-[--muted] truncate">{user.email}</p>
+                      <div style={{ minWidth:0 }}>
+                        <p style={{ fontSize:"14px", fontWeight:700, color:"#e4e9f2", margin:0, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{profile?.username}</p>
+                        <p style={{ fontSize:"12px", color:"#6a7c9a", margin:0, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{user.email}</p>
                       </div>
                     </div>
 
                     <Link href="/profile" onClick={() => setMenuOpen(false)}
-                      className="block py-2 text-sm text-[--muted] hover:text-[--text]">👤 Edit Profile</Link>
+                      style={{ display:"block", padding:"10px 0", fontSize:"14px", color:"#6a7c9a", textDecoration:"none" }}>
+                      👤 Edit Profile
+                    </Link>
 
-                    {/* Mobile navigation */}
-                    <div className="md:hidden border-t border-[--border] mt-1 pt-1">
+                    <div className="md:hidden" style={{ borderTop:"1px solid #1c2a48", marginTop:"4px", paddingTop:"4px" }}>
                       {links.map((l) => (
                         <Link key={l.href} href={l.href} onClick={() => setMenuOpen(false)}
-                          className={`block py-2 text-sm ${pathname === l.href ? "text-green-400 font-semibold" : "text-[--muted] hover:text-[--text]"}`}>{l.label}</Link>
+                          style={{ display:"block", padding:"10px 0", fontSize:"14px", color: pathname === l.href ? "#22c55e" : "#6a7c9a", fontWeight: pathname === l.href ? 600 : 400, textDecoration:"none" }}>
+                          {l.label}
+                        </Link>
                       ))}
                     </div>
 
                     <button onClick={handleLogout}
-                      className="w-full text-left text-sm text-red-400 hover:text-red-300 border-t border-[--border] mt-1 pt-2">
+                      style={{ width:"100%", textAlign:"left", fontSize:"14px", color:"#f87171", background:"none", border:"none", borderTop:"1px solid #1c2a48", marginTop:"4px", paddingTop:"10px", cursor:"pointer" }}>
                       Sign out
                     </button>
                   </div>
