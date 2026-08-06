@@ -19,7 +19,7 @@ export default function RulesPage() {
     "Correct Result means you predicted the right outcome (Home Win / Draw / Away Win), even if the exact score is wrong.",
     "Points are cumulative — weekly scores roll into your monthly and all-time total.",
     "Weeks run Monday to Sunday. Months follow the calendar. A week that crosses two months (e.g. Aug 31 – Sep 6) may count in one week but split across two months — so weekly and monthly standings can differ.",
-    "Monthly prizes to the top 3.",
+    "Monthly prizes to the top 3. Winners will be contacted by organizers through registered e-mail.",
     "In case of a tie, the player who locked predictions earlier wins.",
     "Maximum possible: 50 points per game, 500 points per week.",
   ];
