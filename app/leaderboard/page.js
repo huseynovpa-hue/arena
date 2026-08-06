@@ -6,140 +6,88 @@ export default function LeaderboardPage() {
   const [players, setPlayers] = useState([]);
   const [weeks, setWeeks] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState("all"); // "all", "month", or week id
+  const [filter, setFilter] = useState("all");
   const [selectedMonth, setSelectedMonth] = useState(() => {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
   });
 
-  useEffect(() => {
-    loadWeeks();
-    loadLeaderboard();
-  }, []);
-
-  useEffect(() => {
-    loadLeaderboard();
-  }, [filter, selectedMonth]);
+  useEffect(() => { loadWeeks(); loadLeaderboard(); }, []);
+  useEffect(() => { loadLeaderboard(); }, [filter, selectedMonth]);
 
   async function loadWeeks() {
-    const { data } = await supabase
-      .from("weeks")
-      .select("*")
-      .order("year", { ascending: false })
-      .order("week_number", { ascending: false });
+    const { data } = await supabase.from("weeks").select("*")
+      .order("year", { ascending: false }).order("week_number", { ascending: false });
     setWeeks(data || []);
   }
 
   async function loadLeaderboard() {
     setLoading(true);
 
+    // Always start with ALL profiles
+    const { data: allProfiles } = await supabase
+      .from("profiles")
+      .select("id, username, avatar_url");
+
+    if (!allProfiles) { setPlayers([]); setLoading(false); return; }
+
     if (filter === "all") {
+      // Use the DB view for all-time
       const { data } = await supabase.from("leaderboard").select("*");
       setPlayers(data || []);
-    } else if (filter === "month") {
-      // Get matches from selected month
+      setLoading(false);
+      return;
+    }
+
+    // Get match IDs for the selected period
+    let matchIds = [];
+
+    if (filter === "month") {
       const [year, month] = selectedMonth.split("-");
       const startDate = new Date(year, month - 1, 1).toISOString();
       const endDate = new Date(year, month, 0, 23, 59, 59).toISOString();
-
       const { data: monthMatches } = await supabase
-        .from("matches")
-        .select("id")
-        .gte("kick_off", startDate)
-        .lte("kick_off", endDate);
-
-      if (!monthMatches || monthMatches.length === 0) {
-        setPlayers([]);
-        setLoading(false);
-        return;
-      }
-
-      const matchIds = monthMatches.map((m) => m.id);
-      const { data: preds } = await supabase
-        .from("predictions")
-        .select("user_id, points")
-        .in("match_id", matchIds)
-        .not("points", "is", null);
-
-      // Aggregate by user
-      const userMap = {};
-      (preds || []).forEach((p) => {
-        if (!userMap[p.user_id]) userMap[p.user_id] = { total: 0, count: 0 };
-        userMap[p.user_id].total += p.points || 0;
-        userMap[p.user_id].count += 1;
-      });
-
-      const userIds = Object.keys(userMap);
-      if (userIds.length === 0) { setPlayers([]); setLoading(false); return; }
-
-      const { data: profiles } = await supabase
-        .from("profiles")
-        .select("id, username, avatar_url")
-        .in("id", userIds);
-
-      const result = (profiles || []).map((p) => ({
-        id: p.id,
-        username: p.username,
-        avatar_url: p.avatar_url,
-        total_points: userMap[p.id]?.total || 0,
-        total_predictions: userMap[p.id]?.count || 0,
-        accuracy: userMap[p.id]?.count > 0
-          ? ((userMap[p.id].total / (userMap[p.id].count * 50)) * 100).toFixed(1)
-          : 0,
-        perfect_scores: 0,
-      })).sort((a, b) => b.total_points - a.total_points);
-
-      setPlayers(result);
+        .from("matches").select("id")
+        .gte("kick_off", startDate).lte("kick_off", endDate);
+      matchIds = (monthMatches || []).map(m => m.id);
     } else {
-      // Weekly filter — filter is the week id
+      // Weekly — filter is the week id
       const { data: weekMatches } = await supabase
-        .from("matches")
-        .select("id")
-        .eq("week_id", filter);
-
-      if (!weekMatches || weekMatches.length === 0) {
-        setPlayers([]);
-        setLoading(false);
-        return;
-      }
-
-      const matchIds = weekMatches.map((m) => m.id);
-      const { data: preds } = await supabase
-        .from("predictions")
-        .select("user_id, points")
-        .in("match_id", matchIds)
-        .not("points", "is", null);
-
-      const userMap = {};
-      (preds || []).forEach((p) => {
-        if (!userMap[p.user_id]) userMap[p.user_id] = { total: 0, count: 0 };
-        userMap[p.user_id].total += p.points || 0;
-        userMap[p.user_id].count += 1;
-      });
-
-      const userIds = Object.keys(userMap);
-      if (userIds.length === 0) { setPlayers([]); setLoading(false); return; }
-
-      const { data: profiles } = await supabase
-        .from("profiles")
-        .select("id, username, avatar_url")
-        .in("id", userIds);
-
-      const result = (profiles || []).map((p) => ({
-        id: p.id,
-        username: p.username,
-        avatar_url: p.avatar_url,
-        total_points: userMap[p.id]?.total || 0,
-        total_predictions: userMap[p.id]?.count || 0,
-        accuracy: userMap[p.id]?.count > 0
-          ? ((userMap[p.id].total / (userMap[p.id].count * 50)) * 100).toFixed(1)
-          : 0,
-        perfect_scores: 0,
-      })).sort((a, b) => b.total_points - a.total_points);
-
-      setPlayers(result);
+        .from("matches").select("id").eq("week_id", filter);
+      matchIds = (weekMatches || []).map(m => m.id);
     }
 
+    // Get predictions for those matches
+    let preds = [];
+    if (matchIds.length > 0) {
+      const { data } = await supabase
+        .from("predictions").select("user_id, points")
+        .in("match_id", matchIds).not("points", "is", null);
+      preds = data || [];
+    }
+
+    // Aggregate by user
+    const userMap = {};
+    preds.forEach(p => {
+      if (!userMap[p.user_id]) userMap[p.user_id] = { total: 0, count: 0 };
+      userMap[p.user_id].total += p.points || 0;
+      userMap[p.user_id].count += 1;
+    });
+
+    // Build result for ALL profiles
+    const result = allProfiles.map(p => ({
+      id: p.id,
+      username: p.username,
+      avatar_url: p.avatar_url,
+      total_points: userMap[p.id]?.total || 0,
+      total_predictions: userMap[p.id]?.count || 0,
+      accuracy: userMap[p.id]?.count > 0
+        ? ((userMap[p.id].total / (userMap[p.id].count * 50)) * 100).toFixed(1)
+        : "0.0",
+      perfect_scores: 0,
+    })).sort((a, b) => b.total_points - a.total_points || a.username.localeCompare(b.username));
+
+    setPlayers(result);
     setLoading(false);
   }
 
@@ -170,7 +118,7 @@ export default function LeaderboardPage() {
           className={`px-4 py-2 rounded-full text-xs font-bold border transition-all ${
             filter === "month" ? "bg-amber-500/15 border-amber-500 text-amber-400" : "border-[--border] text-[--muted]"
           }`}>Monthly</button>
-        {weeks.map((w) => (
+        {weeks.map(w => (
           <button key={w.id} onClick={() => setFilter(w.id)}
             className={`px-4 py-2 rounded-full text-xs font-bold border transition-all ${
               filter === w.id ? "bg-blue-500/15 border-blue-500 text-blue-400" : "border-[--border] text-[--muted]"
@@ -181,10 +129,9 @@ export default function LeaderboardPage() {
       {/* Month picker */}
       {filter === "month" && (
         <div className="mb-3">
-          <select value={selectedMonth} onChange={(e) => setSelectedMonth(e.target.value)}
-            className="input-dark w-auto pr-8 text-xs cursor-pointer"
-            style={{ maxWidth: 200 }}>
-            {months.map((m) => (
+          <select value={selectedMonth} onChange={e => setSelectedMonth(e.target.value)}
+            className="input-dark w-auto pr-8 text-xs cursor-pointer" style={{ maxWidth: 200 }}>
+            {months.map(m => (
               <option key={m.value} value={m.value}>{m.label}</option>
             ))}
           </select>
@@ -196,8 +143,8 @@ export default function LeaderboardPage() {
       ) : players.length === 0 ? (
         <div className="card p-12 text-center">
           <div className="text-5xl mb-3">🏆</div>
-          <h3 className="text-lg font-bold mb-1.5">No scores yet</h3>
-          <p className="text-xs text-[--muted]">The leaderboard will populate after match results are entered.</p>
+          <h3 className="text-lg font-bold mb-1.5">No players yet</h3>
+          <p className="text-xs text-[--muted]">Players will appear here once they register.</p>
         </div>
       ) : (
         <div className="card overflow-hidden">
@@ -219,7 +166,7 @@ export default function LeaderboardPage() {
                 <div className="w-7 h-7 rounded-full overflow-hidden bg-[--surface] flex items-center justify-center text-xs shrink-0">
                   {p.avatar_url ? <img src={p.avatar_url} alt="" className="w-full h-full object-cover" /> : "👤"}
                 </div>
-                <div className={`text-sm font-bold truncate ${i === 0 ? "text-amber-400" : ""}`}>{p.username}</div>
+                <div className={`text-sm font-bold truncate ${i === 0 && p.total_points > 0 ? "text-amber-400" : ""}`}>{p.username}</div>
               </div>
               <span className="w-16 text-right text-xs text-[--muted]">{p.total_predictions}</span>
               <span className="w-16 text-right text-xs text-green-400">{p.accuracy}%</span>
