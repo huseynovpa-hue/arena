@@ -57,6 +57,13 @@ export default function LeaderboardPage() {
       matchIds = (weekMatches || []).map(m => m.id);
     }
 
+    // No matches in this period — show empty state
+    if (matchIds.length === 0) {
+      setPlayers([]);
+      setLoading(false);
+      return;
+    }
+
     // Get predictions for those matches
     let preds = [];
     if (matchIds.length > 0) {
@@ -143,8 +150,10 @@ export default function LeaderboardPage() {
       ) : players.length === 0 ? (
         <div className="card p-12 text-center">
           <div className="text-5xl mb-3">🏆</div>
-          <h3 className="text-lg font-bold mb-1.5">No players yet</h3>
-          <p className="text-xs text-[--muted]">Players will appear here once they register.</p>
+          <h3 className="text-lg font-bold mb-1.5">No matches found</h3>
+          <p className="text-xs text-[--muted]">
+            {filter === "month" ? "No matches were played in this month." : filter === "all" ? "Players will appear here once they register." : "No matches in this week yet."}
+          </p>
         </div>
       ) : (
         <div className="card overflow-hidden">
