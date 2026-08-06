@@ -174,6 +174,18 @@ export default function LeaderboardPage() {
         </div>
       )}
 
+      {/* Prize banner for monthly view */}
+      {filter === "month" && (
+        <div className="card p-3 mb-3 flex items-center justify-between" style={{ background: "linear-gradient(135deg, rgba(245,158,11,0.06), rgba(34,197,94,0.06))" }}>
+          <span className="text-xs font-bold text-amber-400">🏆 Monthly Prizes</span>
+          <div className="flex gap-3 text-[11px] font-bold">
+            <span className="text-amber-400">🥇 20 AZN</span>
+            <span className="text-slate-400">🥈 15 AZN</span>
+            <span className="text-orange-600">🥉 10 AZN</span>
+          </div>
+        </div>
+      )}
+
       {loading ? (
         <div className="py-20 text-center text-[--muted]">Loading...</div>
       ) : players.length === 0 ? (
@@ -195,11 +207,15 @@ export default function LeaderboardPage() {
           <div className="flex items-center px-4 py-2.5 bg-[--surface] border-b border-[--border] text-[9px] text-[--muted] uppercase tracking-wider font-bold">
             <span className="w-10">#</span>
             <span className="flex-1">Player</span>
+            {filter === "month" && <span className="w-16 text-right">Prize</span>}
             <span className="w-16 text-right">Preds</span>
             <span className="w-16 text-right">Acc.</span>
             <span className="w-20 text-right">Points</span>
           </div>
-          {players.map((p, i) => (
+          {players.map((p, i) => {
+            const prizeLabels = ["20 AZN", "15 AZN", "10 AZN"];
+            const prizeColors = ["text-amber-400", "text-slate-300", "text-orange-500"];
+            return (
             <div key={p.id} className={`flex items-center px-4 py-2.5 border-b border-[--border] last:border-0 ${i < 3 ? rankBg[i] || "" : ""}`}>
               <span className="w-10">
                 {i < 3 ? <span className="text-lg">{medals[i]}</span> : (
@@ -212,11 +228,19 @@ export default function LeaderboardPage() {
                 </div>
                 <div className={`text-sm font-bold truncate ${i === 0 && p.total_points > 0 ? "text-amber-400" : ""}`}>{p.username}</div>
               </div>
+              {filter === "month" && (
+                <span className="w-16 text-right">
+                  {i < 3 && p.total_points > 0 ? (
+                    <span className={`text-[11px] font-bold ${prizeColors[i]}`}>{prizeLabels[i]}</span>
+                  ) : <span className="text-[11px] text-[--muted]">—</span>}
+                </span>
+              )}
               <span className="w-16 text-right text-xs text-[--muted]">{p.total_predictions}</span>
               <span className="w-16 text-right text-xs text-green-400">{p.accuracy}%</span>
               <span className="w-20 text-right text-sm font-extrabold text-green-400">{p.total_points}</span>
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
