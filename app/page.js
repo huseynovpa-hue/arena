@@ -3,19 +3,28 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { getCurrentWeek, formatWeekRange } from "@/lib/utils";
 import MatchCard from "@/components/MatchCard";
+import ShareCard from "@/components/ShareCard";
 
 export default function Home() {
   const [user, setUser] = useState(null);
+  const [profile, setProfile] = useState(null);
   const [weeks, setWeeks] = useState([]);
   const [selectedWeek, setSelectedWeek] = useState(null);
   const [matches, setMatches] = useState([]);
   const [predictions, setPredictions] = useState({});
+  const [showShare, setShowShare] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const current = getCurrentWeek();
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setUser(data.user));
+    supabase.auth.getUser().then(({ data }) => {
+      setUser(data.user);
+      if (data.user) {
+        supabase.from("profiles").select("username").eq("id", data.user.id).single()
+          .then(({ data: p }) => { if (p) setProfile(p); });
+      }
+    });
     loadWeeks();
   }, []);
 
@@ -121,6 +130,25 @@ export default function Home() {
             <div className="text-[7px] text-[--muted] uppercase tracking-wider">of {matches.length}</div>
           </div>
         </div>
+      )}
+
+      {/* Share button — show when there are scored predictions */}
+      {matches.length > 0 && Object.values(predictions).some(p => p.points != null) && (
+        <button onClick={() => setShowShare(true)}
+          className="w-full mb-4 py-2.5 rounded-xl text-xs font-bold border border-[--border] text-[--muted] hover:border-green-500/50 hover:text-green-400 transition-all flex items-center justify-center gap-2">
+          📤 Share my score
+        </button>
+      )}
+
+      {/* Share modal */}
+      {showShare && (
+        <ShareCard
+          weekLabel={isCurrentWeek ? "Current Week" : `Week ${selectedWeekInfo?.week_number || ""}`}
+          matches={matches}
+          predictions={predictions}
+          username={profile?.username}
+          onClose={() => setShowShare(false)}
+        />
       )}
 
       {/* No weeks at all */}
