@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import { toBakuISO } from "@/lib/utils";
+import { toBakuISO, getISOWeek, getISOWeekYear } from "@/lib/utils";
 import TeamSearch from "@/components/TeamSearch";
 import LeagueSearch from "@/components/LeagueSearch";
 
@@ -79,17 +79,20 @@ export default function AdminPage() {
     setSaving(true);
     setSuccess("");
 
+    // Auto-calculate ISO week from the match date
+    const autoWeek = getISOWeek(date);
+    const autoYear = getISOWeekYear(date);
+
     // Ensure week exists
-    const year = new Date(`${date}T${time}`).getFullYear();
     const { data: existingWeek } = await supabase
-      .from("weeks").select("id").eq("week_number", weekNum).eq("year", year).single();
+      .from("weeks").select("id").eq("week_number", autoWeek).eq("year", autoYear).single();
 
     let weekId;
     if (existingWeek) {
       weekId = existingWeek.id;
     } else {
       const { data: newWeek } = await supabase
-        .from("weeks").insert({ week_number: weekNum, year, title: `Week ${weekNum}` }).select("id").single();
+        .from("weeks").insert({ week_number: autoWeek, year: autoYear, title: `Week ${autoWeek}` }).select("id").single();
       weekId = newWeek?.id;
     }
 
@@ -172,11 +175,6 @@ export default function AdminPage() {
             )}
           </div>
 
-          <div>
-            <label className="text-[11px] text-[--muted] font-semibold uppercase tracking-wider mb-1.5 block">Week Number</label>
-            <input type="number" min="1" value={weekNum} onChange={(e) => setWeekNum(parseInt(e.target.value) || 1)} className="input-dark w-24" />
-          </div>
-
           <TeamSearch label="Home Team" selected={homeTeam} onSelect={setHomeTeam} />
           <TeamSearch label="Away Team" selected={awayTeam} onSelect={setAwayTeam} />
 
@@ -206,6 +204,12 @@ export default function AdminPage() {
               <input type="time" value={time} onChange={(e) => setTime(e.target.value)} className="input-dark" />
             </div>
           </div>
+
+          {date && (
+            <div className="text-xs text-[--muted] bg-[--bg] border border-[--border] rounded-lg px-3 py-2 text-center">
+              📅 Auto-assigned to <span className="text-green-400 font-bold">Week {getISOWeek(date)}</span> ({getISOWeekYear(date)})
+            </div>
+          )}
 
           <button onClick={saveMatch} disabled={!homeTeam || !awayTeam || !date || !time || saving} className="btn-accent w-full">
             {saving ? "Saving..." : editingMatch ? "✏️ UPDATE MATCH" : "➕ ADD MATCH"}
