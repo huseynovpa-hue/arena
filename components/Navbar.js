@@ -63,7 +63,7 @@ export default function Navbar() {
           ))}
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 relative">
           {user ? (
             <>
               <button onClick={() => setMenuOpen(!menuOpen)}
@@ -72,26 +72,33 @@ export default function Navbar() {
               </button>
               {menuOpen && (
                 <>
-                  <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
-                  <div className="absolute top-14 right-4 z-50 bg-[--card] border border-[--border] rounded-xl p-3 min-w-[180px] shadow-xl">
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className="w-8 h-8 rounded-full overflow-hidden bg-[--surface] flex items-center justify-center text-sm">
+                  <div className="fixed inset-0 z-[60] bg-black/40" onClick={() => setMenuOpen(false)} />
+                  <div className="fixed top-16 right-3 left-3 sm:left-auto sm:right-4 sm:w-52 z-[70] bg-[--card] border border-[--border] rounded-xl p-4 shadow-2xl">
+                    <div className="flex items-center gap-3 mb-3 pb-3 border-b border-[--border]">
+                      <div className="w-10 h-10 rounded-full overflow-hidden bg-[--surface] flex items-center justify-center text-sm shrink-0">
                         {profile?.avatar_url ? <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" /> : "👤"}
                       </div>
-                      <div>
-                        <p className="text-xs font-bold text-[--text]">{profile?.username}</p>
-                        <p className="text-[10px] text-[--muted]">{user.email}</p>
+                      <div className="min-w-0">
+                        <p className="text-sm font-bold text-[--text] truncate">{profile?.username}</p>
+                        <p className="text-[11px] text-[--muted] truncate">{user.email}</p>
                       </div>
                     </div>
-                    <div className="border-t border-[--border] pt-2 mb-1">
-                      <Link href="/profile" onClick={() => setMenuOpen(false)} className="block py-1.5 text-xs text-[--muted] hover:text-[--text]">👤 Edit Profile</Link>
-                      <div className="md:hidden">
-                        {links.map((l) => (
-                          <Link key={l.href} href={l.href} onClick={() => setMenuOpen(false)} className="block py-1.5 text-xs text-[--muted] hover:text-[--text]">{l.label}</Link>
-                        ))}
-                      </div>
+
+                    <Link href="/profile" onClick={() => setMenuOpen(false)}
+                      className="block py-2 text-sm text-[--muted] hover:text-[--text]">👤 Edit Profile</Link>
+
+                    {/* Mobile navigation */}
+                    <div className="md:hidden border-t border-[--border] mt-1 pt-1">
+                      {links.map((l) => (
+                        <Link key={l.href} href={l.href} onClick={() => setMenuOpen(false)}
+                          className={`block py-2 text-sm ${pathname === l.href ? "text-green-400 font-semibold" : "text-[--muted] hover:text-[--text]"}`}>{l.label}</Link>
+                      ))}
                     </div>
-                    <button onClick={handleLogout} className="w-full text-left text-xs text-red-400 hover:text-red-300 border-t border-[--border] pt-2">Sign out</button>
+
+                    <button onClick={handleLogout}
+                      className="w-full text-left text-sm text-red-400 hover:text-red-300 border-t border-[--border] mt-1 pt-2">
+                      Sign out
+                    </button>
                   </div>
                 </>
               )}
