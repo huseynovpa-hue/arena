@@ -136,7 +136,7 @@ export default function Home() {
               />
             </div>
             <div className="flex gap-3 mt-1.5 text-[10px]">
-              <span className="text-green-400 font-semibold">✓ {lockedCount} locked</span>
+              <span className="text-green-400 font-semibold">✓ {lockedCount} {t.locked}</span>
               {missedCount > 0 && <span className="text-red-400 font-semibold">✕ {missedCount} missed</span>}
               {openCount > 0 && <span className="text-[--muted]">{openCount} {t.open}</span>}
               {lockedCount === matches.length && matches.length > 0 && <span className="text-green-400">{t.allLocked}</span>}
@@ -144,7 +144,7 @@ export default function Home() {
           </div>
           <div className="text-center">
             <div className="text-2xl font-black text-green-400">{lockedCount}</div>
-            <div className="text-[7px] text-[--muted] uppercase tracking-wider">of {matches.length}</div>
+            <div className="text-[7px] text-[--muted] uppercase tracking-wider">{t.of} {matches.length}</div>
           </div>
         </div>
       )}
