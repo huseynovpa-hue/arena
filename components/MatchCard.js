@@ -33,7 +33,7 @@ export default function MatchCard({ match, prediction, userId, onUpdate }) {
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [isExpired, setIsExpired] = useState(new Date(match.kick_off).getTime() <= Date.now());
-  const { t } = useLang();
+  const { t, lang } = useLang();
 
   useEffect(() => {
     if (prediction) {
@@ -54,7 +54,7 @@ export default function MatchCard({ match, prediction, userId, onUpdate }) {
   const isFinished = match.status === "finished";
   const isInputDisabled = (saved && !editing) || isExpired;
   const canSave = firstToScore !== null && overUnder !== null && userId;
-  const { day, time } = formatDate(match.kick_off, t);
+  const { day, time } = formatDate(match.kick_off, { ...t, _lang: lang });
 
   let statusLabel = null;
   if (isFinished) statusLabel = { text: `${t.finishedResult} — ${match.home_score} : ${match.away_score}`, color: "text-green-400", bg: "bg-green-500/10 border-green-500/25" };
