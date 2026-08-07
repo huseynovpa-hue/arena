@@ -132,7 +132,7 @@ export default function ProfilePage() {
             {/* Hover overlay */}
             <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
               <span className="text-white text-xs font-bold">
-                {uploading ? "Uploading..." : "Change"}
+                {uploading ? t.uploading : t.change}
               </span>
             </div>
           </div>
@@ -149,7 +149,7 @@ export default function ProfilePage() {
             disabled={uploading}
             className="mt-3 text-xs text-green-400 hover:underline font-semibold"
           >
-            {uploading ? "Uploading..." : "Upload Photo"}
+            {uploading ? t.uploading : t.uploadPhoto}
           </button>
         </div>
 
@@ -193,7 +193,7 @@ export default function ProfilePage() {
         )}
 
         <button onClick={saveProfile} disabled={saving} className="btn-accent w-full">
-          {saving ? "Saving..." : "{t.saveProfile}"}
+          {saving ? t.saving : t.saveProfile}
         </button>
       </div>
     </div>
