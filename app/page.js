@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { getCurrentWeek, formatWeekRange } from "@/lib/utils";
-import { useLang } from "@/lib/i18n";
+import { useLang, formatWeekLabel } from "@/lib/i18n";
 import MatchCard from "@/components/MatchCard";
 import ShareCard from "@/components/ShareCard";
 
@@ -17,7 +17,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
 
   const current = getCurrentWeek();
-  const { t } = useLang();
+  const { t, lang } = useLang();
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -99,7 +99,7 @@ export default function Home() {
               const isCur = w.week_number === current.week && w.year === current.year;
               return (
                 <option key={w.id} value={w.id}>
-                  {isCur ? `📍 ${t.currentWeek}` : `Week ${w.week_number}`} — {formatWeekRange(w.week_number, w.year)}
+                  {isCur ? `📍 ${t.currentWeek}` : formatWeekLabel(w.week_number, lang)} — {formatWeekRange(w.week_number, w.year)}
                 </option>
               );
             })}
@@ -127,7 +127,7 @@ export default function Home() {
         <div className="card p-3.5 mb-4 flex items-center gap-3">
           <div className="flex-1">
             <div className="text-xs font-bold mb-1.5">
-              {isCurrentWeek ? `📍 ${t.currentWeek}` : `Week ${selectedWeekInfo?.week_number || ""}`}
+              {isCurrentWeek ? `📍 ${t.currentWeek}` : formatWeekLabel(selectedWeekInfo?.week_number || "", lang)}
             </div>
             <div className="h-1.5 rounded-full bg-[--surface] overflow-hidden">
               <div
