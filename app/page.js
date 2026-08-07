@@ -99,7 +99,7 @@ export default function Home() {
               const isCur = w.week_number === current.week && w.year === current.year;
               return (
                 <option key={w.id} value={w.id}>
-                  {isCur ? "📍 {t.currentWeek}" : `Week ${w.week_number}`} — {formatWeekRange(w.week_number, w.year)}
+                  {isCur ? `📍 ${t.currentWeek}` : `Week ${w.week_number}`} — {formatWeekRange(w.week_number, w.year)}
                 </option>
               );
             })}
@@ -127,7 +127,7 @@ export default function Home() {
         <div className="card p-3.5 mb-4 flex items-center gap-3">
           <div className="flex-1">
             <div className="text-xs font-bold mb-1.5">
-              {isCurrentWeek ? "📍 {t.currentWeek}" : `Week ${selectedWeekInfo?.week_number || ""}`}
+              {isCurrentWeek ? `📍 ${t.currentWeek}` : `Week ${selectedWeekInfo?.week_number || ""}`}
             </div>
             <div className="h-1.5 rounded-full bg-[--surface] overflow-hidden">
               <div
@@ -160,7 +160,7 @@ export default function Home() {
       {/* Share modal */}
       {showShare && (
         <ShareCard
-          weekLabel={isCurrentWeek ? "{t.currentWeek}" : `Week ${selectedWeekInfo?.week_number || ""}`}
+          weekLabel={isCurrentWeek ? t.currentWeek : `Week ${selectedWeekInfo?.week_number || ""}`}
           matches={matches}
           predictions={predictions}
           username={profile?.username}
