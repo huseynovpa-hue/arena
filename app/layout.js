@@ -1,5 +1,6 @@
 import "./globals.css";
 import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 
 export const metadata = {
   title: "Arena — Football Predictions",
@@ -15,9 +16,10 @@ export const viewport = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className="min-h-screen antialiased">
+      <body className="min-h-screen antialiased flex flex-col">
         <Navbar />
-        <main className="max-w-2xl mx-auto px-3 sm:px-4 pb-24">{children}</main>
+        <main className="max-w-2xl mx-auto px-3 sm:px-4 pb-12 flex-1 w-full">{children}</main>
+        <Footer />
       </body>
     </html>
   );
