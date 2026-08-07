@@ -69,6 +69,10 @@ export default function Navbar() {
         </div>
 
         <div className="flex items-center gap-2">
+          <button onClick={() => setLang(lang === "en" ? "az" : "en")}
+            className="text-[10px] font-bold text-blue-400 bg-blue-500/10 border border-blue-500/30 px-2 py-1 rounded-lg hover:bg-blue-500/20 transition-colors">
+            🌐 {lang === "en" ? "AZ" : "EN"}
+          </button>
           {user ? (
             <>
               <button onClick={() => setMenuOpen(!menuOpen)}
@@ -105,11 +109,6 @@ export default function Navbar() {
                       🎯 {t.inviteFriends}
                     </button>
 
-                    <button onClick={() => { setLang(lang === "en" ? "az" : "en"); setMenuOpen(false); }}
-                      style={{ display:"block", width:"100%", textAlign:"left", padding:"10px 0", fontSize:"14px", color:"#3b82f6", background:"none", border:"none", cursor:"pointer" }}>
-                      🌐 {t.language}
-                    </button>
-
                     <div className="md:hidden" style={{ borderTop:"1px solid #334155", marginTop:"4px", paddingTop:"4px" }}>
                       {links.map((l) => (
                         <Link key={l.href} href={l.href} onClick={() => setMenuOpen(false)}
@@ -128,13 +127,7 @@ export default function Navbar() {
               )}
             </>
           ) : (
-            <div className="flex items-center gap-2">
-              <button onClick={() => setLang(lang === "en" ? "az" : "en")}
-                className="text-[10px] font-bold text-blue-400 bg-blue-500/10 border border-blue-500/30 px-2 py-1 rounded-lg">
-                🌐 {lang === "en" ? "AZ" : "EN"}
-              </button>
-              <Link href="/login" className="btn-accent text-xs" style={{ padding: "6px 16px" }}>{t.signIn}</Link>
-            </div>
+            <Link href="/login" className="btn-accent text-xs" style={{ padding: "6px 16px" }}>{t.signIn}</Link>
           )}
         </div>
       </div>
