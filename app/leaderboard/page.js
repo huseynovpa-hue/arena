@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { getCurrentWeek, formatWeekRange } from "@/lib/utils";
-import { useLang } from "@/lib/i18n";
+import { useLang, formatWeekLabel } from "@/lib/i18n";
 
 export default function LeaderboardPage() {
   const [players, setPlayers] = useState([]);
@@ -15,7 +15,7 @@ export default function LeaderboardPage() {
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
   });
   const [selectedWeek, setSelectedWeek] = useState(null);
-  const { t } = useLang();
+  const { t, lang } = useLang();
 
   const current = getCurrentWeek();
 
@@ -120,7 +120,7 @@ export default function LeaderboardPage() {
             <select value={selectedWeek || ""} onChange={e => setSelectedWeek(parseInt(e.target.value))} className="input-dark w-auto pr-8 text-xs cursor-pointer" style={{ maxWidth: 280 }}>
               {weeks.map(w => {
                 const isCurrent = w.week_number === current.week && w.year === current.year;
-                return (<option key={w.id} value={w.id}>{isCurrent ? `📍 ${t.currentWeek}` : `Week ${w.week_number}`} — {formatWeekRange(w.week_number, w.year)}</option>);
+                return (<option key={w.id} value={w.id}>{isCurrent ? `📍 ${t.currentWeek}` : formatWeekLabel(w.week_number, lang)} — {formatWeekRange(w.week_number, w.year)}</option>);
               })}
             </select>
           )}
