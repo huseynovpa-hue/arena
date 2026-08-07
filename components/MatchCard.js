@@ -54,7 +54,7 @@ export default function MatchCard({ match, prediction, userId, onUpdate }) {
   const isFinished = match.status === "finished";
   const isInputDisabled = (saved && !editing) || isExpired;
   const canSave = firstToScore !== null && overUnder !== null && userId;
-  const { day, time } = formatDate(match.kick_off);
+  const { day, time } = formatDate(match.kick_off, t);
 
   let statusLabel = null;
   if (isFinished) statusLabel = { text: `${t.finishedResult} — ${match.home_score} : ${match.away_score}`, color: "text-green-400", bg: "bg-green-500/10 border-green-500/25" };
