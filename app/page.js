@@ -149,8 +149,8 @@ export default function Home() {
         </div>
       )}
 
-      {/* Share button — show when there are scored predictions */}
-      {matches.length > 0 && Object.values(predictions).some(p => p.points != null) && (
+      {/* Share button — show only when ALL matches in the week are finished */}
+      {matches.length > 0 && matches.every(m => m.status === "finished") && (
         <button onClick={() => setShowShare(true)}
           className="w-full mb-4 py-2.5 rounded-xl text-xs font-bold border border-[--border] text-[--muted] hover:border-green-500/50 hover:text-green-400 transition-all flex items-center justify-center gap-2">
           {t.shareMyScore}
