@@ -17,66 +17,101 @@ export const viewport = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className="min-h-screen antialiased flex flex-col bg-[#0b1329] text-[#ffffff] relative">
-        {/* === VIBRANT ARENA LIGHTING & STADIUM PITCH === */}
+      <body className="min-h-screen antialiased flex flex-col bg-[#070b15] text-[#f8fafc] relative">
+        {/* === EMBEDDED HIGH-DEF VECTOR STADIUM BACKGROUND === */}
         <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden" aria-hidden="true">
-          
-          {/* 1. Intense Top Stadium Sky & Floodlights */}
-          <div className="absolute top-0 left-0 right-0 h-[45%] bg-gradient-to-b from-[#080e1e] via-[#0f1d3a] to-[#1a2d54]">
-            {/* Bright Center Arena Light Beam */}
-            <div 
-              className="absolute -top-16 left-1/2 -translate-x-1/2 w-[1000px] h-[450px]"
-              style={{
-                background: "radial-gradient(ellipse at 50% 0%, rgba(255, 255, 255, 0.6) 0%, rgba(59, 130, 246, 0.35) 45%, transparent 75%)"
-              }}
-            />
-            {/* Warm Stadium Side Lights */}
-            <div 
-              className="absolute top-0 left-[-5%] w-[450px] h-[350px]"
-              style={{
-                background: "radial-gradient(circle at 30% 10%, rgba(245, 158, 11, 0.45) 0%, transparent 65%)"
-              }}
-            />
-            <div 
-              className="absolute top-0 right-[-5%] w-[450px] h-[350px]"
-              style={{
-                background: "radial-gradient(circle at 70% 10%, rgba(16, 185, 129, 0.4) 0%, transparent 65%)"
-              }}
-            />
-          </div>
+          <svg 
+            className="w-full h-full object-cover" 
+            viewBox="0 0 1440 900" 
+            preserveAspectRatio="xMidYMid slice"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <defs>
+              {/* Sky & Stadium Base */}
+              <linearGradient id="skyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#0a1122" />
+                <stop offset="50%" stopColor="#132247" />
+                <stop offset="100%" stopColor="#1a3365" />
+              </linearGradient>
 
-          {/* 2. Vivid Emerald Football Pitch */}
-          <div className="absolute bottom-0 left-0 right-0 h-[58%] overflow-hidden">
-            {/* Horizon Glow Border */}
-            <div className="absolute top-0 left-0 right-0 h-[3px] bg-white/80 shadow-[0_0_20px_#ffffff]" />
+              {/* Floodlight Beam Glows */}
+              <radialGradient id="centerLight" cx="50%" cy="10%" r="60%">
+                <stop offset="0%" stopColor="#ffffff" stopOpacity="0.8" />
+                <stop offset="25%" stopColor="#60a5fa" stopOpacity="0.4" />
+                <stop offset="60%" stopColor="#1d4ed8" stopOpacity="0.1" />
+                <stop offset="100%" stopColor="#000000" stopOpacity="0" />
+              </radialGradient>
+
+              <radialGradient id="sideLightLeft" cx="15%" cy="15%" r="45%">
+                <stop offset="0%" stopColor="#fbbf24" stopOpacity="0.5" />
+                <stop offset="50%" stopColor="#f59e0b" stopOpacity="0.15" />
+                <stop offset="100%" stopColor="#000000" stopOpacity="0" />
+              </radialGradient>
+
+              <radialGradient id="sideLightRight" cx="85%" cy="15%" r="45%">
+                <stop offset="0%" stopColor="#34d399" stopOpacity="0.5" />
+                <stop offset="50%" stopColor="#10b981" stopOpacity="0.15" />
+                <stop offset="100%" stopColor="#000000" stopOpacity="0" />
+              </radialGradient>
+
+              {/* Stadium Stands Arc */}
+              <linearGradient id="standsGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#0f172a" stopOpacity="0.9" />
+                <stop offset="100%" stopColor="#1e293b" stopOpacity="0.95" />
+              </linearGradient>
+
+              {/* 3D Grass Pitch Gradient */}
+              <linearGradient id="pitchGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#22c55e" />
+                <stop offset="35%" stopColor="#16a34a" />
+                <stop offset="70%" stopColor="#15803d" />
+                <stop offset="100%" stopColor="#0b4620" />
+              </linearGradient>
+
+              {/* Vignette Overlay */}
+              <radialGradient id="vignette" cx="50%" cy="50%" r="70%">
+                <stop offset="40%" stopColor="#000000" stopOpacity="0" />
+                <stop offset="100%" stopColor="#050811" stopOpacity="0.75" />
+              </radialGradient>
+            </defs>
+
+            {/* 1. Sky */}
+            <rect width="1440" height="900" fill="url(#skyGrad)" />
+
+            {/* 2. Floodlight Rays */}
+            <rect width="1440" height="500" fill="url(#centerLight)" />
+            <rect width="1440" height="500" fill="url(#sideLightLeft)" />
+            <rect width="1440" height="500" fill="url(#sideLightRight)" />
+
+            {/* Light Beams */}
+            <polygon points="150,50 0,550 500,550" fill="#ffffff" opacity="0.08" />
+            <polygon points="1290,50 940,550 1440,550" fill="#ffffff" opacity="0.08" />
+
+            {/* 3. Stadium Crowd Stands (Curved Silhouette) */}
+            <path d="M -100 480 Q 720 400 1540 480 L 1540 550 L -100 550 Z" fill="url(#standsGrad)" />
             
-            {/* Rich Saturated Green Field */}
-            <div 
-              className="absolute inset-0"
-              style={{
-                background: "linear-gradient(to bottom, #15803d 0%, #166534 50%, #14532d 100%)"
-              }}
-            />
+            {/* Stadium Roof Lights */}
+            <line x1="100" y1="420" x2="1340" y2="420" stroke="#64748b" strokeWidth="2" opacity="0.3" />
+            <circle cx="200" cy="420" r="4" fill="#ffffff" opacity="0.9" />
+            <circle cx="230" cy="420" r="4" fill="#ffffff" opacity="0.9" />
+            <circle cx="260" cy="420" r="4" fill="#ffffff" opacity="0.9" />
+            <circle cx="1180" cy="420" r="4" fill="#ffffff" opacity="0.9" />
+            <circle cx="1210" cy="420" r="4" fill="#ffffff" opacity="0.9" />
+            <circle cx="1240" cy="420" r="4" fill="#ffffff" opacity="0.9" />
 
-            {/* Grass Pitch Pattern */}
-            <div 
-              className="absolute inset-0 opacity-20"
-              style={{
-                backgroundImage: "repeating-linear-gradient(0deg, #ffffff 0px, #ffffff 36px, transparent 36px, transparent 72px)"
-              }}
-            />
+            {/* 4. Curved Perspective Pitch */}
+            <path d="M -200 900 L -100 520 Q 720 450 1540 520 L 1640 900 Z" fill="url(#pitchGrad)" />
 
-            {/* Field Penalty Arc */}
-            <div className="absolute top-4 left-1/2 -translate-x-1/2 w-[85%] max-w-2xl h-40 border-t-2 border-x-2 border-white/35 rounded-t-[60px]" />
-          </div>
+            {/* Pitch Horizon Line */}
+            <path d="M -100 520 Q 720 450 1540 520" stroke="#ffffff" strokeWidth="2" opacity="0.6" fill="none" />
 
-          {/* 3. Vignette Overlay for Readability */}
-          <div 
-            className="absolute inset-0"
-            style={{
-              background: "radial-gradient(circle at 50% 40%, transparent 40%, rgba(8, 14, 30, 0.65) 90%)"
-            }}
-          />
+            {/* Perspective Pitch Lines */}
+            <path d="M 320 540 Q 720 490 1120 540 L 1220 700 Q 720 630 220 700 Z" stroke="#ffffff" strokeWidth="2" opacity="0.25" fill="none" />
+            <ellipse cx="720" cy="510" rx="180" ry="40" stroke="#ffffff" strokeWidth="2" opacity="0.2" fill="none" />
+
+            {/* 5. Vignette Overlay */}
+            <rect width="1440" height="900" fill="url(#vignette)" />
+          </svg>
         </div>
 
         <LangWrapper>
