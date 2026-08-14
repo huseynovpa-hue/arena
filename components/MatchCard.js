@@ -22,7 +22,6 @@ function ScoreBtn({ value, onChange, disabled }) {
       >
         −
       </button>
-
       <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center text-lg sm:text-xl font-black transition-all ${
         disabled 
           ? "bg-slate-900/40 border border-slate-800 text-slate-500" 
@@ -30,7 +29,6 @@ function ScoreBtn({ value, onChange, disabled }) {
       }`}>
         {value}
       </div>
-
       <button 
         disabled={disabled} 
         onClick={() => onChange(value + 1)}
@@ -161,7 +159,7 @@ export default function MatchCard({ match, prediction, userId, onUpdate }) {
         {saved && !editing && (
           <div className="mt-2.5 py-2 px-2.5 rounded-xl bg-blue-500/10 border border-blue-500/25 flex items-center justify-between gap-2">
             <span className="text-blue-400 text-[10px] sm:text-[11px] font-bold truncate">
-              🔒 {prediction?.home_score}:{prediction?.away_score} · {ouLabel} · {ftsLabel}
+              {prediction?.home_score}:{prediction?.away_score} · {ouLabel} · {ftsLabel}
             </span>
             {!isExpired && (
               <button onClick={() => setEditing(true)}
@@ -179,18 +177,29 @@ export default function MatchCard({ match, prediction, userId, onUpdate }) {
           </div>
         )}
         {!saved && !isExpired && (
-  <button 
-    disabled={!canSave || saving} 
-    onClick={savePrediction}
-    className={`w-full mt-3 py-3 rounded-xl text-xs font-extrabold tracking-wider uppercase transition-all duration-200 ${
-      canSave 
-        ? "bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-[0_4px_20px_rgba(16,185,129,0.35)] hover:shadow-[0_6px_25px_rgba(16,185,129,0.5)] hover:scale-[1.01] active:scale-[0.98]" 
-        : "bg-slate-900/50 border border-slate-800 text-slate-500 cursor-not-allowed"
-    }`}
-  >
-    {saving ? t.saving : !userId ? t.signInToPredict : canSave ? `🔒 ${t.lockPrediction}` : t.selectToLock}
-  </button>
-)}
+          <button 
+            disabled={!canSave || saving} 
+            onClick={savePrediction}
+            className={`w-full mt-3 py-3 rounded-xl text-xs font-extrabold tracking-wider uppercase transition-all duration-200 flex items-center justify-center gap-2 ${
+              canSave 
+                ? "bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-[0_4px_20px_rgba(16,185,129,0.35)] hover:shadow-[0_6px_25px_rgba(16,185,129,0.5)] hover:scale-[1.01] active:scale-[0.98]" 
+                : "bg-slate-900/50 border border-slate-800 text-slate-500 cursor-not-allowed"
+            }`}
+          >
+            {saving ? (
+              t.saving
+            ) : !userId ? (
+              t.signInToPredict
+            ) : canSave ? (
+              <>
+                <span>🔒</span>
+                <span>{t.lockPrediction}</span>
+              </>
+            ) : (
+              t.selectToLock
+            )}
+          </button>
+        )}
         {statusLabel && (
           <div className={`mt-2 py-2 rounded-xl text-center border text-[11px] font-bold tracking-wide ${statusLabel.bg} ${statusLabel.color}`}>{statusLabel.text}</div>
         )}
