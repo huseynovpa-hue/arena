@@ -5,18 +5,20 @@ import { useLang } from "@/lib/i18n";
 
 export default function Navbar() {
   const pathname = usePathname();
-  const { lang, setLang, t } = useLang();
+  const langContext = useLang();
+  const lang = langContext?.lang || "en";
+  const setLang = langContext?.setLang || (() => {});
+  const t = langContext?.t || {};
 
   const navLinks = [
-    { href: "/", label: t?.matches || "Matches", icon: "⚽" },
-    { href: "/leaderboard", label: t?.leaderboard || "Leaderboard", icon: "🏆" },
-    { href: "/about", label: t?.about || "About", icon: "ℹ️" },
+    { href: "/", label: t.matches || "Matches", icon: "⚽" },
+    { href: "/leaderboard", label: t.leaderboard || "Leaderboard", icon: "🏆" },
+    { href: "/about", label: t.about || "About", icon: "ℹ️" },
   ];
 
   return (
     <header className="sticky top-0 z-50 bg-[#0b0f19]/80 backdrop-blur-md border-b border-[--border]">
       <div className="max-w-3xl mx-auto px-4 h-16 flex items-center justify-between">
-        {/* Logo */}
         <Link href="/" className="flex items-center gap-2 group">
           <span className="text-2xl transition-transform group-hover:scale-110">⚽</span>
           <span className="font-black text-xl tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-200">
@@ -24,7 +26,6 @@ export default function Navbar() {
           </span>
         </Link>
 
-        {/* Navigation Links & Language Switcher */}
         <div className="flex items-center gap-3">
           <nav className="flex items-center gap-1.5">
             {navLinks.map((link) => {
@@ -46,7 +47,6 @@ export default function Navbar() {
             })}
           </nav>
 
-          {/* 3D Language Toggle Button */}
           <button
             onClick={() => setLang(lang === "en" ? "az" : "en")}
             className="btn-3d-surface !px-2.5 !py-1 !text-[11px] uppercase tracking-wide font-extrabold"
