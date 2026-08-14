@@ -17,48 +17,52 @@ export const viewport = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className="min-h-screen antialiased flex flex-col bg-[#070b14] text-[#f1f5f9] relative">
-        {/* === STADIUM LIGHTING & PITCH BACKGROUND === */}
+      <body className="min-h-screen antialiased flex flex-col bg-[#080d1a] text-[#f1f5f9] relative">
+        {/* === BRIGHT STADIUM & GREEN PITCH BACKGROUND === */}
         <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden" aria-hidden="true">
-          {/* 1. Tactical Grid Pattern */}
+          {/* 1. Top Stadium Sky & Floodlights */}
           <div 
-            className="absolute inset-0 opacity-25"
+            className="absolute top-0 left-0 right-0 h-[48%]"
             style={{
-              backgroundImage: `
-                linear-gradient(to right, rgba(255,255,255,0.06) 1px, transparent 1px),
-                linear-gradient(to bottom, rgba(255,255,255,0.06) 1px, transparent 1px)
-              `,
-              backgroundSize: "36px 36px"
+              background: `
+                radial-gradient(circle at 20% 15%, rgba(255, 255, 255, 0.35) 0%, transparent 45%),
+                radial-gradient(circle at 80% 15%, rgba(255, 255, 255, 0.35) 0%, transparent 45%),
+                radial-gradient(ellipse at 50% 35%, rgba(59, 130, 246, 0.35) 0%, transparent 65%),
+                linear-gradient(to bottom, #070d1d 0%, #0e1935 55%, #182848 100%)
+              `
             }}
-          />
+          >
+            {/* Illuminated Crowd & Stadium Lights Texture */}
+            <div 
+              className="absolute bottom-0 left-0 right-0 h-28 opacity-45"
+              style={{
+                backgroundImage: `radial-gradient(circle, #f59e0b 1px, transparent 1.5px), radial-gradient(circle, #60a5fa 1px, transparent 1.5px)`,
+                backgroundSize: "14px 14px, 22px 22px",
+                backgroundPosition: "0 0, 7px 7px"
+              }}
+            />
+          </div>
 
-          {/* 2. Top Stadium Center Emerald Pitch Floodlight */}
+          {/* 2. Bottom Vivid Green Football Pitch */}
           <div 
-            className="absolute -top-36 left-1/2 -translate-x-1/2 w-[1000px] h-[550px]"
+            className="absolute bottom-0 left-0 right-0 h-[55%]"
             style={{
-              background: "radial-gradient(circle, rgba(16, 185, 129, 0.32) 0%, rgba(5, 150, 105, 0.12) 45%, rgba(7, 11, 20, 0) 75%)",
+              background: `
+                linear-gradient(to bottom, rgba(22, 163, 74, 0.95) 0%, rgba(21, 128, 61, 0.98) 45%, rgba(20, 83, 45, 1) 100%)
+              `
             }}
-          />
+          >
+            {/* Alternating Pitch Lawn Grass Pattern */}
+            <div 
+              className="absolute inset-0 opacity-20"
+              style={{
+                backgroundImage: `repeating-linear-gradient(0deg, #ffffff, #ffffff 42px, transparent 42px, transparent 84px)`
+              }}
+            />
 
-          {/* 3. Blue Side Spotlight */}
-          <div 
-            className="absolute top-1/3 -right-36 w-[650px] h-[650px]"
-            style={{
-              background: "radial-gradient(circle, rgba(37, 99, 235, 0.22) 0%, rgba(7, 11, 20, 0) 70%)",
-            }}
-          />
-
-          {/* 4. Amber/Gold Bottom Spotlight */}
-          <div 
-            className="absolute -bottom-28 -left-28 w-[650px] h-[650px]"
-            style={{
-              background: "radial-gradient(circle, rgba(245, 158, 11, 0.2) 0%, rgba(7, 11, 20, 0) 70%)",
-            }}
-          />
-
-          {/* 5. Subtle Pitch Center Circle Ring */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] opacity-[0.07] border-2 border-emerald-400 rounded-full flex items-center justify-center">
-            <div className="w-[200px] h-[200px] border-2 border-emerald-400 rounded-full" />
+            {/* Glowing White Field Horizon Line */}
+            <div className="absolute top-0 left-0 right-0 h-[2px] bg-white/60 shadow-[0_0_12px_rgba(255,255,255,0.9)]" />
+            <div className="absolute top-4 left-1/2 -translate-x-1/2 w-[85%] max-w-2xl h-28 border-t-2 border-x-2 border-white/25 rounded-t-3xl" />
           </div>
         </div>
 
