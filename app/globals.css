@@ -1,20 +1,18 @@
 @import "tailwindcss";
 
 :root {
-  --bg: #070a12;
-  --surface: rgba(15, 23, 42, 0.85);
-  --card: rgba(11, 17, 32, 0.82);
-  --border: rgba(255, 255, 255, 0.12);
-  --text: #f1f5f9;
+  --bg: #050811;
+  --surface: rgba(12, 18, 32, 0.94);
+  --card: rgba(10, 16, 28, 0.92);
+  --card-border: rgba(255, 255, 255, 0.08);
+  --text: #f8fafc;
   --muted: #94a3b8;
   --accent: #10b981;
   --gold: #f59e0b;
-  --red: #ef4444;
-  --blue: #3b82f6;
 }
 
 body {
-  background: var(--bg);
+  background-color: var(--bg);
   color: var(--text);
   overflow-x: hidden;
 }
@@ -24,50 +22,53 @@ input[type="time"] {
   color-scheme: dark;
 }
 
-/* Glassmorphism Cards with Dark Blur for Crisp Contrast */
+/* Polished Dark Game UI Cards */
 .card {
   background: var(--card);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border: 1px solid var(--border);
-  border-radius: 1rem;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--card-border);
+  border-radius: 1.25rem;
   overflow: hidden;
-  box-shadow: 0 12px 35px -10px rgba(0, 0, 0, 0.65);
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.85),
+              inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
-/* Action Buttons */
+/* Primary Action Accent Button */
 .btn-accent {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  background: linear-gradient(135deg, #10b981 0%, #047857 100%);
   color: #ffffff;
   font-weight: 700;
   padding: 0.625rem 1.5rem;
   border-radius: 0.75rem;
-  transition: all 0.25s ease;
+  transition: all 0.2s ease;
   border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
   cursor: pointer;
 }
 .btn-accent:hover:not(:disabled) {
-  transform: translateY(-1.5px);
-  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(16, 185, 129, 0.5);
 }
 
+/* Gold Button */
 .btn-gold {
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  background: linear-gradient(135deg, #f59e0b 0%, #b45309 100%);
   color: #ffffff;
   font-weight: 700;
   padding: 0.625rem 1.5rem;
   border-radius: 0.75rem;
-  transition: all 0.25s ease;
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+  transition: all 0.2s ease;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35);
   cursor: pointer;
 }
 
+/* Outline Secondary Button */
 .btn-outline {
-  background: rgba(255, 255, 255, 0.06);
-  backdrop-filter: blur(8px);
-  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--card-border);
   color: var(--muted);
   font-weight: 600;
   padding: 0.625rem 1.5rem;
@@ -78,14 +79,15 @@ input[type="time"] {
 .btn-outline:hover {
   border-color: var(--accent);
   color: #ffffff;
-  background: rgba(16, 185, 129, 0.15);
+  background: rgba(16, 185, 129, 0.12);
 }
 
+/* Dark Input Fields */
 .input-dark {
   width: 100%;
   padding: 0.625rem 1rem;
-  background: rgba(8, 12, 22, 0.85);
-  border: 1px solid var(--border);
+  background: rgba(6, 10, 18, 0.9);
+  border: 1px solid var(--card-border);
   border-radius: 0.75rem;
   color: var(--text);
   font-size: 0.875rem;
