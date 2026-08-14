@@ -17,28 +17,31 @@ export const viewport = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className="min-h-screen antialiased flex flex-col bg-[#070b14] text-[#f1f5f9] relative">
-        {/* === REAL STADIUM BACKGROUND === */}
+      <body className="min-h-screen antialiased flex flex-col bg-[#050811] text-[#f8fafc] relative">
+        {/* === PROFESSIONAL STADIUM BACKGROUND LAYER === */}
         <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden" aria-hidden="true">
-          {/* Main Stadium Image */}
+          {/* 1. Base Stadium Photo with Subtle Blur */}
           <div 
-            className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-all duration-500"
+            className="absolute inset-0 bg-cover bg-center bg-no-repeat scale-105 filter blur-[3px]"
             style={{
-              /* Uses local public/stadium.jpg first, falls back to high-res stadium photo */
               backgroundImage: `url('/stadium.jpg'), url('https://images.unsplash.com/photo-1522778119026-d647f0596c20?q=80&w=2070&auto=format&fit=crop')`,
             }}
           />
 
-          {/* Lighting Glow & Vignette (Enhances brightness at lights, adds depth to edges) */}
+          {/* 2. Dark Vignette & Atmospheric Glow Mask */}
           <div 
             className="absolute inset-0"
             style={{
               background: `
-                radial-gradient(ellipse at 50% 15%, rgba(255, 255, 255, 0.15) 0%, transparent 60%),
-                linear-gradient(to bottom, rgba(7, 11, 20, 0.25) 0%, rgba(7, 11, 20, 0.55) 60%, rgba(7, 11, 20, 0.85) 100%)
+                radial-gradient(ellipse at 50% 15%, rgba(16, 185, 129, 0.18) 0%, transparent 60%),
+                radial-gradient(circle at 50% 50%, rgba(5, 8, 17, 0.78) 0%, rgba(5, 8, 17, 0.94) 85%),
+                linear-gradient(to bottom, rgba(5, 8, 17, 0.88) 0%, rgba(5, 8, 17, 0.65) 40%, rgba(5, 8, 17, 0.98) 100%)
               `
             }}
           />
+
+          {/* 3. Subtle Emerald Top Floodlight Beam */}
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-5xl h-36 bg-gradient-to-b from-emerald-500/10 via-transparent to-transparent pointer-events-none" />
         </div>
 
         <LangWrapper>
