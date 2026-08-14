@@ -1,427 +1,187 @@
 "use client";
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { useLang } from "@/lib/i18n";
 
-// Helper to format logo URLs (handles full URLs, relative paths, or filenames)
-function resolveLogoUrl(logoPath) {
-  if (!logoPath) return null;
-  
-  // If it's already a full web URL
-  if (logoPath.startsWith("http://") || logoPath.startsWith("https://")) {
-    return logoPath;
-  }
-  
-  // If it starts with a slash (local public folder)
-  if (logoPath.startsWith("/")) {
-    return logoPath;
-  }
-
-  // If it's just a file name like "fenerbahce.png"
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  if (supabaseUrl) {
-    return `${supabaseUrl}/storage/v1/object/public/logos/${logoPath}`;
-  }
-
-  return `/logos/${logoPath}`;
-}
-
-export default function MatchCard({ match, prediction, userId, onUpdate }) {
-  if (!match) return null;
-
+export default function MatchCard({ match, userId, userPrediction, onPredictionSaved }) {
   const { t } = useLang();
-
-  // Debug log: Open F12 Console in browser to see your exact Supabase column names
-  useEffect(() => {
-    console.log("Supabase Match Data:", match);
-  }, [match]);
-
-  // Normalize Team Names
-  const homeTeamName =
-    typeof match.home_team === "object" ? match.home_team?.name :
-    match.home_team || match.home_team_name || "Home Team";
-
-  const awayTeamName =
-    typeof match.away_team === "object" ? match.away_team?.name :
-    match.away_team || match.away_team_name || "Away Team";
-
-  // Normalize Logo Raw Values
-  const rawHomeLogo =
-    match.home_logo ||
-    match.home_team_logo ||
-    match.home_logo_url ||
-    match.home_team_logo_url ||
-    (typeof match.home_team === "object" ? (match.home_team?.logo || match.home_team?.logo_url) : null);
-
-  const rawAwayLogo =
-    match.away_logo ||
-    match.away_team_logo ||
-    match.away_logo_url ||
-    match.away_team_logo_url ||
-    (typeof match.away_team === "object" ? (match.away_team?.logo || match.away_team?.logo_url) : null);
-
-  const homeLogo = resolveLogoUrl(rawHomeLogo);
-  const awayLogo = resolveLogoUrl(rawAwayLogo);
-  const leagueName = match.league || "Super Lig";
-
-  // State for image load errors
-  const [homeImgError, setHomeImgError] = useState(false);
-  const [awayImgError, setAwayImgError] = useState(false);
-
-  // Live countdown state
-  const [timeLeft, setTimeLeft] = useState("");
-  const [isTimeLocked, setIsTimeLocked] = useState(false);
-
-  useEffect(() => {
-    if (!match.kick_off) return;
-
-    const calculateTime = () => {
-      const now = Date.now();
-      const kickoff = new Date(match.kick_off).getTime();
-      const diff = kickoff - now;
-
-      if (diff <= 0) {
-        setTimeLeft("");
-        setIsTimeLocked(true);
-      } else {
-        const h = Math.floor(diff / (1000 * 60 * 60));
-        const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-        const s = Math.floor((diff % (1000 * 60)) / 1000);
-        const pad = (n) => String(n).padStart(2, "0");
-        setTimeLeft(`${pad(h)}:${pad(m)}:${pad(s)}`);
-        setIsTimeLocked(false);
-      }
-    };
-
-    calculateTime();
-    const interval = setInterval(calculateTime, 1000);
-    return () => clearInterval(interval);
-  }, [match.kick_off]);
+  const [homeScore, setHomeScore] = useState(userPrediction?.home_score ?? 0);
+  const [awayScore, setAwayScore] = useState(userPrediction?.away_score ?? 0);
+  const [firstToScore, setFirstToScore] = useState(userPrediction?.first_to_score ?? "none");
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
 
   const isFinished = match.status === "finished";
-  const isMatchLocked = isFinished || match.status === "locked" || isTimeLocked;
-
-  // Prediction states
-  const [homeScore, setHomeScore] = useState(prediction?.home_score ?? 0);
-  const [awayScore, setAwayScore] = useState(prediction?.away_score ?? 0);
-  const [overUnder, setOverUnder] = useState(prediction?.over_under ?? null);
-  const [firstToScore, setFirstToScore] = useState(prediction?.first_to_score ?? null);
-
-  const [isEditing, setIsEditing] = useState(false);
-  const [saving, setSaving] = useState(false);
+  const kickOffDate = new Date(match.kick_off);
+  const isLocked = isFinished || new Date() > kickOffDate;
 
   useEffect(() => {
-    if (prediction) {
-      setHomeScore(prediction.home_score ?? 0);
-      setAwayScore(prediction.away_score ?? 0);
-      setOverUnder(prediction.over_under ?? null);
-      setFirstToScore(prediction.first_to_score ?? null);
+    if (userPrediction) {
+      setHomeScore(userPrediction.home_score ?? 0);
+      setAwayScore(userPrediction.away_score ?? 0);
+      setFirstToScore(userPrediction.first_to_score ?? "none");
     }
-  }, [prediction]);
+  }, [userPrediction]);
 
-  const hasPrediction = Boolean(prediction);
-  const isFormReadonly = (hasPrediction && !isEditing) || isMatchLocked;
-
-  const handleSavePrediction = async () => {
-    if (!userId) {
-      alert("Please log in to submit predictions.");
-      return;
-    }
-
+  async function handleSave() {
+    if (!userId || isLocked) return;
     setSaving(true);
-    try {
-      const payload = {
-        user_id: userId,
-        match_id: match.id,
-        home_score: homeScore,
-        away_score: awayScore,
-        over_under: overUnder,
-        first_to_score: firstToScore,
-      };
+    setSaved(false);
 
-      const { error } = await supabase
-        .from("predictions")
-        .upsert(payload, { onConflict: "user_id,match_id" });
+    const predictionData = {
+      user_id: userId,
+      match_id: match.id,
+      home_score: parseInt(homeScore) || 0,
+      away_score: parseInt(awayScore) || 0,
+      first_to_score: firstToScore,
+    };
 
-      if (error) {
-        console.error("Supabase Save Error:", error.message);
-        alert(`Failed to save: ${error.message}`);
-      } else {
-        setIsEditing(false);
-        if (onUpdate) await onUpdate();
-      }
-    } catch (err) {
-      console.error("Error saving prediction:", err);
-      alert("An unexpected error occurred while saving.");
-    } finally {
-      setSaving(false);
+    const { error } = await supabase
+      .from("predictions")
+      .upsert(predictionData, { onConflict: "user_id,match_id" });
+
+    setSaving(false);
+    if (!error) {
+      setSaved(true);
+      if (onPredictionSaved) onPredictionSaved();
+      setTimeout(() => setSaved(false), 2500);
+    } else {
+      alert("Error saving prediction: " + error.message);
     }
-  };
+  }
 
-  const getInitials = (name) => {
-    if (!name) return "FC";
-    return name.split(" ").map((w) => w[0]).join("").slice(0, 3).toUpperCase();
-  };
+  const formattedDate = kickOffDate.toLocaleDateString("en-US", {
+    timeZone: "Asia/Baku",
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  });
+
+  const formattedTime = kickOffDate.toLocaleTimeString("en-GB", {
+    timeZone: "Asia/Baku",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
 
   return (
-    <div className="card overflow-hidden my-3 border border-slate-700 bg-slate-900 shadow-2xl rounded-2xl">
-      {/* 1. HEADER RIBBON */}
-      <div className="bg-slate-950 py-2.5 px-4 flex items-center justify-between border-b border-slate-800 text-xs font-bold text-slate-300">
-        <span className="text-amber-400 font-extrabold tracking-wide uppercase">
-          {leagueName}
+    <div className="card p-5 space-y-4 border border-[--border] bg-[--surface] transition-all">
+      {/* League & Kickoff Header */}
+      <div className="flex items-center justify-between text-xs text-[--muted] pb-2 border-b border-[--border]">
+        <span className="font-bold tracking-wider uppercase text-green-400">
+          {match.league || "Football"}
         </span>
-        <div className="flex items-center gap-2">
-          {match.kick_off && (
-            <span className="text-slate-400">
-              {new Date(match.kick_off).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-            </span>
-          )}
-
-          {timeLeft && !isMatchLocked && (
-            <span className="text-red-400 font-mono font-black bg-red-950/80 px-2 py-0.5 rounded border border-red-500/40">
-              {timeLeft}
-            </span>
-          )}
-
-          {isFinished && (
-            <span className="text-emerald-400 text-[10px] font-extrabold bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-500/40 uppercase">
-              {t?.finished || "Finished"}
-            </span>
-          )}
-
-          {!isFinished && isMatchLocked && (
-            <span className="text-red-400 text-[10px] font-extrabold bg-red-950/80 px-2 py-0.5 rounded border border-red-500/40 uppercase">
-              {t?.locked || "Locked"}
-            </span>
-          )}
+        <div className="flex items-center gap-1.5 font-medium">
+          <span>📅 {formattedDate}</span>
+          <span>•</span>
+          <span className="text-[--text] font-bold">{formattedTime} (Baku)</span>
         </div>
       </div>
 
-      {/* 2. MATCH TEAMS & SCORE COUNTERS */}
-      <div className="p-4 sm:p-5 flex items-center justify-between gap-2">
+      {/* Teams and Score Input / Display */}
+      <div className="grid grid-cols-3 items-center gap-2 py-2">
         {/* Home Team */}
-        <div className="flex flex-col items-center gap-2 flex-1">
-          <div className="w-14 h-14 rounded-2xl bg-slate-950 border border-slate-700 p-1 flex items-center justify-center shadow-inner">
-            {homeLogo && !homeImgError ? (
-              <img
-                src={homeLogo}
-                alt={homeTeamName}
-                className="w-10 h-10 object-contain"
-                onError={() => setHomeImgError(true)}
-              />
-            ) : (
-              <span className="font-black text-amber-400 text-xs tracking-wider">
-                {getInitials(homeTeamName)}
-              </span>
-            )}
-          </div>
-          <span className="font-extrabold text-xs sm:text-sm text-white tracking-wide text-center uppercase">
-            {homeTeamName}
-          </span>
+        <div className="flex flex-col items-center text-center gap-2">
+          {match.home_badge ? (
+            <img src={match.home_badge} alt={match.home_team} className="w-12 h-12 object-contain drop-shadow" />
+          ) : (
+            <div className="w-12 h-12 rounded-full bg-[--bg] flex items-center justify-center text-lg font-black">
+              {match.home_team?.[0]}
+            </div>
+          )}
+          <span className="font-extrabold text-sm leading-tight text-[--text]">{match.home_team}</span>
         </div>
 
-        {/* Center Score Controls */}
-        <div className="flex items-center gap-2">
-          {/* Home Score */}
-          <div className="flex items-center gap-1">
-            {!isFormReadonly && (
-              <button
-                type="button"
-                onClick={() => setHomeScore(Math.max(0, homeScore - 1))}
-                className="w-8 h-8 rounded-lg bg-slate-800 border border-slate-600 text-slate-100 font-bold hover:bg-slate-700 active:scale-95 transition flex items-center justify-center text-lg"
-              >
-                -
-              </button>
-            )}
-            <div className="w-10 h-12 rounded-xl bg-slate-950 border border-slate-700 flex items-center justify-center font-black text-2xl text-white shadow-inner">
-              {homeScore}
+        {/* Interactive Score Area */}
+        <div className="flex flex-col items-center justify-center gap-1">
+          {isFinished ? (
+            <div className="bg-[#0b0f19] px-4 py-2 rounded-xl border border-green-500/30 text-center">
+              <div className="text-2xl font-black text-green-400">
+                {match.home_score} - {match.away_score}
+              </div>
+              <span className="text-[10px] uppercase font-bold text-green-500 tracking-wider">Final</span>
             </div>
-            {!isFormReadonly && (
-              <button
-                type="button"
-                onClick={() => setHomeScore(homeScore + 1)}
-                className="w-8 h-8 rounded-lg bg-slate-800 border border-slate-600 text-slate-100 font-bold hover:bg-slate-700 active:scale-95 transition flex items-center justify-center text-lg"
-              >
-                +
-              </button>
-            )}
-          </div>
-
-          <span className="text-slate-500 font-black px-1 text-xs">VS</span>
-
-          {/* Away Score */}
-          <div className="flex items-center gap-1">
-            {!isFormReadonly && (
-              <button
-                type="button"
-                onClick={() => setAwayScore(Math.max(0, awayScore - 1))}
-                className="w-8 h-8 rounded-lg bg-slate-800 border border-slate-600 text-slate-100 font-bold hover:bg-slate-700 active:scale-95 transition flex items-center justify-center text-lg"
-              >
-                -
-              </button>
-            )}
-            <div className="w-10 h-12 rounded-xl bg-slate-950 border border-slate-700 flex items-center justify-center font-black text-2xl text-white shadow-inner">
-              {awayScore}
+          ) : (
+            <div className="flex items-center gap-2">
+              <input
+                type="number"
+                min="0"
+                max="20"
+                disabled={isLocked}
+                value={homeScore}
+                onChange={(e) => setHomeScore(e.target.value)}
+                className="w-12 h-12 text-center text-xl font-black input-dark rounded-xl"
+              />
+              <span className="text-[--muted] font-extrabold text-lg">:</span>
+              <input
+                type="number"
+                min="0"
+                max="20"
+                disabled={isLocked}
+                value={awayScore}
+                onChange={(e) => setAwayScore(e.target.value)}
+                className="w-12 h-12 text-center text-xl font-black input-dark rounded-xl"
+              />
             </div>
-            {!isFormReadonly && (
-              <button
-                type="button"
-                onClick={() => setAwayScore(awayScore + 1)}
-                className="w-8 h-8 rounded-lg bg-slate-800 border border-slate-600 text-slate-100 font-bold hover:bg-slate-700 active:scale-95 transition flex items-center justify-center text-lg"
-              >
-                +
-              </button>
-            )}
-          </div>
+          )}
         </div>
 
         {/* Away Team */}
-        <div className="flex flex-col items-center gap-2 flex-1">
-          <div className="w-14 h-14 rounded-2xl bg-slate-950 border border-slate-700 p-1 flex items-center justify-center shadow-inner">
-            {awayLogo && !awayImgError ? (
-              <img
-                src={awayLogo}
-                alt={awayTeamName}
-                className="w-10 h-10 object-contain"
-                onError={() => setAwayImgError(true)}
-              />
-            ) : (
-              <span className="font-black text-amber-400 text-xs tracking-wider">
-                {getInitials(awayTeamName)}
-              </span>
-            )}
-          </div>
-          <span className="font-extrabold text-xs sm:text-sm text-white tracking-wide text-center uppercase">
-            {awayTeamName}
-          </span>
+        <div className="flex flex-col items-center text-center gap-2">
+          {match.away_badge ? (
+            <img src={match.away_badge} alt={match.away_team} className="w-12 h-12 object-contain drop-shadow" />
+          ) : (
+            <div className="w-12 h-12 rounded-full bg-[--bg] flex items-center justify-center text-lg font-black">
+              {match.away_team?.[0]}
+            </div>
+          )}
+          <span className="font-extrabold text-sm leading-tight text-[--text]">{match.away_team}</span>
         </div>
       </div>
 
-      {/* 3. HIGH-CONTRAST EXTRA PREDICTIONS */}
-      {!isFormReadonly && (
-        <div className="px-4 pb-4 space-y-4 border-t border-slate-800 pt-3 bg-slate-950/60">
-          {/* Over / Under 2.5 */}
-          <div>
-            <div className="text-[11px] font-extrabold uppercase tracking-widest text-slate-300 text-center mb-2">
-              Over / Under 2.5
-            </div>
-            <div className="grid grid-cols-2 gap-2.5">
-              <button
-                type="button"
-                onClick={() => setOverUnder("over")}
-                className={`py-2.5 px-3 rounded-xl text-xs font-extrabold transition-all border ${
-                  overUnder === "over"
-                    ? "bg-emerald-600 border-emerald-400 text-white shadow-[0_0_12px_rgba(16,185,129,0.4)] scale-[1.02]"
-                    : "bg-slate-800 hover:bg-slate-700 text-slate-100 border-slate-600 shadow-md"
-                }`}
-              >
-                Over 2.5
-              </button>
-              <button
-                type="button"
-                onClick={() => setOverUnder("under")}
-                className={`py-2.5 px-3 rounded-xl text-xs font-extrabold transition-all border ${
-                  overUnder === "under"
-                    ? "bg-emerald-600 border-emerald-400 text-white shadow-[0_0_12px_rgba(16,185,129,0.4)] scale-[1.02]"
-                    : "bg-slate-800 hover:bg-slate-700 text-slate-100 border-slate-600 shadow-md"
-                }`}
-              >
-                Under 2.5
-              </button>
-            </div>
+      {/* First Team to Score 3D Selector */}
+      {!isFinished && (
+        <div className="pt-2">
+          <div className="text-[10px] text-[--muted] uppercase tracking-wider font-bold mb-2 text-center">
+            {t.firstToScore || "First Team to Score"}
           </div>
-
-          {/* First Team to Score */}
-          <div>
-            <div className="text-[11px] font-extrabold uppercase tracking-widest text-slate-300 text-center mb-2">
-              First Team To Score
-            </div>
-            <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-3 gap-2">
+            {[
+              { id: "home", label: match.home_team },
+              { id: "none", label: t.noGoal || "No Goal" },
+              { id: "away", label: match.away_team },
+            ].map((option) => (
               <button
+                key={option.id}
                 type="button"
-                onClick={() => setFirstToScore("home")}
-                className={`py-2.5 px-2 rounded-xl text-xs font-extrabold transition-all border truncate ${
-                  firstToScore === "home"
-                    ? "bg-emerald-600 border-emerald-400 text-white shadow-[0_0_12px_rgba(16,185,129,0.4)] scale-[1.02]"
-                    : "bg-slate-800 hover:bg-slate-700 text-slate-100 border-slate-600 shadow-md"
-                }`}
+                disabled={isLocked}
+                onClick={() => setFirstToScore(option.id)}
+                className={`btn-3d-option text-xs truncate ${firstToScore === option.id ? "active" : ""}`}
               >
-                {homeTeamName}
+                {option.label}
               </button>
-              <button
-                type="button"
-                onClick={() => setFirstToScore("none")}
-                className={`py-2.5 px-2 rounded-xl text-xs font-extrabold transition-all border ${
-                  firstToScore === "none"
-                    ? "bg-emerald-600 border-emerald-400 text-white shadow-[0_0_12px_rgba(16,185,129,0.4)] scale-[1.02]"
-                    : "bg-slate-800 hover:bg-slate-700 text-slate-100 border-slate-600 shadow-md"
-                }`}
-              >
-                No Goal
-              </button>
-              <button
-                type="button"
-                onClick={() => setFirstToScore("away")}
-                className={`py-2.5 px-2 rounded-xl text-xs font-extrabold transition-all border truncate ${
-                  firstToScore === "away"
-                    ? "bg-emerald-600 border-emerald-400 text-white shadow-[0_0_12px_rgba(16,185,129,0.4)] scale-[1.02]"
-                    : "bg-slate-800 hover:bg-slate-700 text-slate-100 border-slate-600 shadow-md"
-                }`}
-              >
-                {awayTeamName}
-              </button>
-            </div>
-          </div>
-
-          {/* Save Button */}
-          <div className="pt-2">
-            <button
-              type="button"
-              onClick={handleSavePrediction}
-              disabled={saving}
-              className="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 text-slate-950 font-black text-sm tracking-wide shadow-lg transition active:scale-[0.99] disabled:opacity-40"
-            >
-              {saving ? "SAVING..." : "SAVE PREDICTION"}
-            </button>
+            ))}
           </div>
         </div>
       )}
 
-      {/* 4. SUBMITTED PREDICTION BAR */}
-      {hasPrediction && !isEditing && (
-        <div className="p-3 bg-slate-950/90 border-t border-slate-800 flex items-center justify-between text-xs px-4">
-          <div className="flex items-center gap-2 text-emerald-400 font-extrabold">
-            <span>{homeScore} - {awayScore}</span>
-            <span>•</span>
-            <span className="capitalize">{overUnder ? `${overUnder} 2.5` : ""}</span>
-            <span>•</span>
-            <span className="capitalize">
-              {firstToScore === "home" ? homeTeamName : firstToScore === "away" ? awayTeamName : "No Goal"}
-            </span>
-          </div>
-
-          {!isMatchLocked && (
-            <button
-              type="button"
-              onClick={() => setIsEditing(true)}
-              className="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-100 hover:text-white hover:bg-slate-700 border border-slate-600 font-bold transition"
-            >
-              ✏️ {t?.edit || "Edit"}
-            </button>
-          )}
-        </div>
+      {/* Action Button */}
+      {!isLocked && (
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          className="btn-3d-accent w-full text-xs uppercase tracking-wider font-extrabold mt-2"
+        >
+          {saving ? "Saving..." : saved ? "✓ Prediction Saved!" : userPrediction ? "Update Prediction" : "Save Prediction"}
+        </button>
       )}
 
-      {/* 5. FINISHED STATE / POINTS */}
-      {isFinished && (
-        <div className="p-3 bg-slate-950 border-t border-slate-800 flex items-center justify-center">
-          <div className="bg-emerald-500/20 border border-emerald-500/40 rounded-xl px-5 py-1 text-center">
-            <span className="text-[9px] font-extrabold text-emerald-400 uppercase tracking-widest block">Earned</span>
-            <span className="text-sm font-black text-emerald-300">
-              +{prediction?.points ?? prediction?.points_earned ?? 0} pts
-            </span>
-          </div>
+      {/* Point outcome info for finished matches */}
+      {isFinished && userPrediction && userPrediction.points !== null && (
+        <div className="mt-2 p-2.5 rounded-xl bg-green-500/10 border border-green-500/20 text-center">
+          <span className="text-xs text-green-400 font-bold">
+            +{userPrediction.points} PTS Earned!
+          </span>
         </div>
       )}
     </div>
