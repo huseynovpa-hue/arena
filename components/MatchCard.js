@@ -5,32 +5,46 @@ import { formatDate } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
 import { useLang } from "@/lib/i18n";
 
-function TeamLogo({ src, size = 36 }) {
+function TeamLogo({ src, size = 48 }) {
   const [err, setErr] = useState(false);
   if (!src || err)
-    return (<div className="rounded-full bg-[--surface] flex items-center justify-center text-[--muted]" style={{ width: size, height: size, fontSize: size * 0.45 }}>⚽</div>);
-  return <img src={src} alt="" width={size} height={size} className="object-contain" onError={() => setErr(true)} />;
+    return (
+      <div
+        className="rounded-full bg-[--surface] border-2 border-amber-400/60 flex items-center justify-center text-[--muted] shadow-[0_0_12px_rgba(251,191,36,0.15)]"
+        style={{ width: size, height: size, fontSize: size * 0.4 }}
+      >
+        ⚽
+      </div>
+    );
+  return (
+    <div
+      className="rounded-full border-2 border-amber-400/60 shadow-[0_0_12px_rgba(251,191,36,0.15)] overflow-hidden bg-[--surface] flex items-center justify-center"
+      style={{ width: size, height: size }}
+    >
+      <img src={src} alt="" width={size * 0.75} height={size * 0.75} className="object-contain" onError={() => setErr(true)} />
+    </div>
+  );
 }
 
 function ScoreBtn({ value, onChange, disabled }) {
   return (
     <div className="flex items-center gap-1.5">
-      <button 
-        disabled={disabled || value <= 0} 
+      <button
+        disabled={disabled || value <= 0}
         onClick={() => onChange(Math.max(0, value - 1))}
         className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-slate-900/80 border border-slate-700/60 text-slate-300 font-bold flex items-center justify-center hover:bg-slate-800 active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
       >
         −
       </button>
       <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center text-lg sm:text-xl font-black transition-all ${
-        disabled 
-          ? "bg-slate-900/40 border border-slate-800 text-slate-500" 
+        disabled
+          ? "bg-slate-900/40 border border-slate-800 text-slate-500"
           : "bg-slate-950/90 border-2 border-emerald-500 text-white shadow-[0_0_15px_rgba(16,185,129,0.3)]"
       }`}>
         {value}
       </div>
-      <button 
-        disabled={disabled} 
+      <button
+        disabled={disabled}
         onClick={() => onChange(value + 1)}
         className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-slate-900/80 border border-slate-700/60 text-slate-300 font-bold flex items-center justify-center hover:bg-slate-800 active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
       >
@@ -91,9 +105,19 @@ export default function MatchCard({ match, prediction, userId, onUpdate }) {
   const ouLabel = overUnder === "over" ? t.over : overUnder === "under" ? t.under : "—";
 
   return (
-    <div className={`card transition-colors ${saved && !editing ? "border-green-500/25" : ""}`}>
-      <div className="flex items-center justify-between px-3 py-2 bg-[--surface] border-b border-[--border] gap-2">
-        <span className="text-[10px] text-[--muted] font-semibold truncate">{match.league}</span>
+    <div
+      className={`rounded-2xl overflow-hidden border transition-colors ${
+        saved && !editing ? "border-green-500/25" : "border-[--border]"
+      }`}
+      style={{
+        background: "linear-gradient(180deg, rgba(15,23,42,0.9), rgba(7,11,21,0.95))",
+      }}
+    >
+      {/* League / status banner — styled like a stadium scoreboard strip */}
+      <div className="flex items-center justify-between px-3 py-2 bg-gradient-to-r from-amber-500/10 via-transparent to-emerald-500/10 border-b border-[--border] gap-2">
+        <span className="text-[10px] text-amber-300/90 font-bold truncate flex items-center gap-1">
+          🏆 {match.league}
+        </span>
         <div className="flex items-center gap-1.5 shrink-0">
           <span className="text-[10px] text-[--muted] hidden sm:inline">{day} · {time}</span>
           <span className="text-[10px] text-[--muted] sm:hidden">{time}</span>
@@ -101,23 +125,27 @@ export default function MatchCard({ match, prediction, userId, onUpdate }) {
           {isFinished && <span className="text-[11px] font-bold text-green-400">{t.finished}</span>}
         </div>
       </div>
+
       <div className="p-3">
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-1.5 flex-1 min-w-0">
-            <TeamLogo src={match.home_badge} size={28} />
-            <span className="text-xs sm:text-sm font-bold truncate">{match.home_team}</span>
+        {/* Team row — big circular badges with ring, like the club-vs-club screen */}
+        <div className="flex items-center justify-between mb-3 px-1">
+          <div className="flex flex-col items-center gap-1.5 flex-1 min-w-0">
+            <TeamLogo src={match.home_badge} size={48} />
+            <span className="text-[11px] sm:text-xs font-bold truncate text-center max-w-[90px]">{match.home_team}</span>
           </div>
-          <span className="text-[9px] font-extrabold text-[--muted] px-1.5 mx-1">VS</span>
-          <div className="flex items-center gap-1.5 flex-1 min-w-0 justify-end">
-            <span className="text-xs sm:text-sm font-bold truncate text-right">{match.away_team}</span>
-            <TeamLogo src={match.away_badge} size={28} />
+          <span className="text-[10px] font-extrabold text-amber-400 px-2 shrink-0">VS</span>
+          <div className="flex flex-col items-center gap-1.5 flex-1 min-w-0">
+            <TeamLogo src={match.away_badge} size={48} />
+            <span className="text-[11px] sm:text-xs font-bold truncate text-center max-w-[90px]">{match.away_team}</span>
           </div>
         </div>
+
         <div className="flex items-center justify-center gap-3 sm:gap-4 mb-3">
           <ScoreBtn value={homeScore} onChange={setHomeScore} disabled={isInputDisabled} />
           <span className="text-[--muted] font-extrabold text-sm">—</span>
           <ScoreBtn value={awayScore} onChange={setAwayScore} disabled={isInputDisabled} />
         </div>
+
         {prediction?.points != null && (
           <div className="flex justify-center mb-2.5">
             <div className="bg-green-500/10 border border-green-500/30 rounded-lg px-4 py-1.5 text-center">
@@ -134,6 +162,7 @@ export default function MatchCard({ match, prediction, userId, onUpdate }) {
             </div>
           </div>
         )}
+
         <div className="mt-2.5">
           <div className="text-[9px] text-[--muted] uppercase tracking-wider text-center mb-1">{t.overUnder}</div>
           <div className="flex gap-1.5 justify-center">
@@ -145,6 +174,7 @@ export default function MatchCard({ match, prediction, userId, onUpdate }) {
             ))}
           </div>
         </div>
+
         <div className="mt-2.5">
           <div className="text-[9px] text-[--muted] uppercase tracking-wider text-center mb-1">{t.firstToScore}</div>
           <div className="flex gap-1 sm:gap-1.5 justify-center">
@@ -156,6 +186,7 @@ export default function MatchCard({ match, prediction, userId, onUpdate }) {
             ))}
           </div>
         </div>
+
         {saved && !editing && (
           <div className="mt-2.5 py-2 px-2.5 rounded-xl bg-blue-500/10 border border-blue-500/25 flex items-center justify-between gap-2">
             <span className="text-blue-400 text-[10px] sm:text-[11px] font-bold truncate">
@@ -167,6 +198,7 @@ export default function MatchCard({ match, prediction, userId, onUpdate }) {
             )}
           </div>
         )}
+
         {editing && (
           <div className="mt-2.5 flex gap-2">
             <button onClick={() => { if(prediction){setHomeScore(prediction.home_score??0);setAwayScore(prediction.away_score??0);setFirstToScore(prediction.first_to_score??null);setOverUnder(prediction.over_under??null);} setEditing(false); }}
@@ -176,19 +208,21 @@ export default function MatchCard({ match, prediction, userId, onUpdate }) {
               {saving ? t.saving : t.saveChanges}</button>
           </div>
         )}
+
         {!saved && !isExpired && (
-          <button 
-            disabled={!canSave || saving} 
+          <button
+            disabled={!canSave || saving}
             onClick={savePrediction}
             className={`w-full mt-3 py-3 rounded-xl text-xs font-extrabold tracking-wider uppercase transition-all duration-200 flex items-center justify-center gap-2 ${
-              canSave 
-                ? "bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-[0_4px_20px_rgba(16,185,129,0.35)] hover:shadow-[0_6px_25px_rgba(16,185,129,0.5)] hover:scale-[1.01] active:scale-[0.98]" 
+              canSave
+                ? "bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-[0_4px_20px_rgba(16,185,129,0.35)] hover:shadow-[0_6px_25px_rgba(16,185,129,0.5)] hover:scale-[1.01] active:scale-[0.98]"
                 : "bg-slate-900/50 border border-slate-800 text-slate-500 cursor-not-allowed"
             }`}
           >
             {saving ? t.saving : !userId ? t.signInToPredict : canSave ? t.lockPrediction : t.selectToLock}
           </button>
         )}
+
         {statusLabel && (
           <div className={`mt-2 py-2 rounded-xl text-center border text-[11px] font-bold tracking-wide ${statusLabel.bg} ${statusLabel.color}`}>{statusLabel.text}</div>
         )}
