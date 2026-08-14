@@ -40,18 +40,31 @@ function TeamLogo({ src, size = 52 }) {
   );
 }
 
+// Shared style for "unselected" pill/segment buttons (O/U, First-to-Score).
+// Lighter background + outer shadow (not inset) so they read as raised, clickable
+// surfaces instead of sinking into the card. Hover/active handled via Tailwind
+// classes since inline `style` always wins over Tailwind for the same property.
+const unselectedBtnStyle = {
+  background: "linear-gradient(180deg, #202c47, #121a2e)",
+  border: "1px solid rgba(148,163,184,0.28)",
+  color: "var(--muted)",
+  boxShadow: "0 3px 8px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06)",
+};
+const unselectedBtnClass =
+  "transition-all duration-150 hover:brightness-125 hover:border-slate-300/40 hover:-translate-y-px active:translate-y-0 active:brightness-95";
+
 function ScoreBtn({ value, onChange, disabled }) {
   return (
     <div className="flex items-center gap-1.5">
       <button
         disabled={disabled || value <= 0}
         onClick={() => onChange(Math.max(0, value - 1))}
-        className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg text-slate-300 font-bold flex items-center justify-center active:scale-90 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+        className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg text-slate-200 font-bold flex items-center justify-center active:scale-90 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-150 hover:brightness-125 hover:-translate-y-px"
         style={{
-          background: "linear-gradient(180deg, #1e293b, #0f172a)",
+          background: "linear-gradient(180deg, #263449, #121b2e)",
           boxShadow:
-            "0 3px 6px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08), inset 0 -1px 0 rgba(0,0,0,0.4)",
-          border: "1px solid rgba(148,163,184,0.15)",
+            "0 4px 8px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.1), inset 0 -1px 0 rgba(0,0,0,0.4)",
+          border: "1px solid rgba(148,163,184,0.3)",
         }}
       >
         −
@@ -80,12 +93,12 @@ function ScoreBtn({ value, onChange, disabled }) {
       <button
         disabled={disabled}
         onClick={() => onChange(value + 1)}
-        className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg text-slate-300 font-bold flex items-center justify-center active:scale-90 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+        className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg text-slate-200 font-bold flex items-center justify-center active:scale-90 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-150 hover:brightness-125 hover:-translate-y-px"
         style={{
-          background: "linear-gradient(180deg, #1e293b, #0f172a)",
+          background: "linear-gradient(180deg, #263449, #121b2e)",
           boxShadow:
-            "0 3px 6px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08), inset 0 -1px 0 rgba(0,0,0,0.4)",
-          border: "1px solid rgba(148,163,184,0.15)",
+            "0 4px 8px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.1), inset 0 -1px 0 rgba(0,0,0,0.4)",
+          border: "1px solid rgba(148,163,184,0.3)",
         }}
       >
         +
@@ -235,7 +248,9 @@ export default function MatchCard({ match, prediction, userId, onUpdate }) {
                 key={o.val}
                 disabled={isInputDisabled}
                 onClick={() => setOverUnder(o.val)}
-                className="flex-1 max-w-[160px] py-1.5 px-2 rounded-lg text-[11px] font-semibold transition-all disabled:cursor-not-allowed"
+                className={`flex-1 max-w-[160px] py-1.5 px-2 rounded-lg text-[11px] font-semibold disabled:cursor-not-allowed disabled:hover:brightness-100 disabled:hover:translate-y-0 ${
+                  overUnder === o.val ? "transition-all" : unselectedBtnClass
+                }`}
                 style={
                   overUnder === o.val
                     ? {
@@ -245,14 +260,12 @@ export default function MatchCard({ match, prediction, userId, onUpdate }) {
                             : "linear-gradient(180deg, rgba(59,130,246,0.22), rgba(59,130,246,0.05))",
                         border: o.val === "over" ? "1.5px solid #10b981" : "1.5px solid #3b82f6",
                         color: o.val === "over" ? "#34d399" : "#60a5fa",
-                        boxShadow: "0 3px 6px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.06)",
+                        boxShadow:
+                          o.val === "over"
+                            ? "0 4px 12px rgba(16,185,129,0.3), inset 0 1px 0 rgba(255,255,255,0.08)"
+                            : "0 4px 12px rgba(59,130,246,0.3), inset 0 1px 0 rgba(255,255,255,0.08)",
                       }
-                    : {
-                        background: "linear-gradient(180deg, #131c30, #0a0f1c)",
-                        border: "1px solid rgba(148,163,184,0.15)",
-                        color: "var(--muted)",
-                        boxShadow: "inset 0 1px 2px rgba(0,0,0,0.4)",
-                      }
+                    : unselectedBtnStyle
                 }
               >
                 {o.label}
@@ -269,21 +282,18 @@ export default function MatchCard({ match, prediction, userId, onUpdate }) {
                 key={o.val}
                 disabled={isInputDisabled}
                 onClick={() => setFirstToScore(o.val)}
-                className="flex-1 py-1.5 px-1 rounded-lg text-[10px] sm:text-[11px] font-semibold transition-all truncate disabled:cursor-not-allowed"
+                className={`flex-1 py-1.5 px-1 rounded-lg text-[10px] sm:text-[11px] font-semibold truncate disabled:cursor-not-allowed disabled:hover:brightness-100 disabled:hover:translate-y-0 ${
+                  firstToScore === o.val ? "transition-all" : unselectedBtnClass
+                }`}
                 style={
                   firstToScore === o.val
                     ? {
                         background: "linear-gradient(180deg, rgba(16,185,129,0.22), rgba(16,185,129,0.05))",
                         border: "1.5px solid #10b981",
                         color: "#34d399",
-                        boxShadow: "0 3px 6px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.06)",
+                        boxShadow: "0 4px 12px rgba(16,185,129,0.3), inset 0 1px 0 rgba(255,255,255,0.08)",
                       }
-                    : {
-                        background: "linear-gradient(180deg, #131c30, #0a0f1c)",
-                        border: "1px solid rgba(148,163,184,0.15)",
-                        color: "var(--muted)",
-                        boxShadow: "inset 0 1px 2px rgba(0,0,0,0.4)",
-                      }
+                    : unselectedBtnStyle
                 }
               >
                 {o.label}
@@ -307,10 +317,11 @@ export default function MatchCard({ match, prediction, userId, onUpdate }) {
             {!isExpired && (
               <button
                 onClick={() => setEditing(true)}
-                className="text-[10px] font-bold text-amber-400 px-2 py-1 rounded-lg shrink-0"
+                className="text-[10px] font-bold text-amber-400 px-2 py-1 rounded-lg shrink-0 transition-all duration-150 hover:brightness-125 hover:-translate-y-px"
                 style={{
-                  background: "linear-gradient(180deg, rgba(245,158,11,0.2), rgba(245,158,11,0.06))",
-                  border: "1px solid rgba(245,158,11,0.35)",
+                  background: "linear-gradient(180deg, rgba(245,158,11,0.22), rgba(245,158,11,0.08))",
+                  border: "1px solid rgba(245,158,11,0.45)",
+                  boxShadow: "0 3px 8px rgba(245,158,11,0.15)",
                 }}
               >
                 ✏️
@@ -323,15 +334,19 @@ export default function MatchCard({ match, prediction, userId, onUpdate }) {
           <div className="mt-2.5 flex gap-2">
             <button
               onClick={() => { if(prediction){setHomeScore(prediction.home_score??0);setAwayScore(prediction.away_score??0);setFirstToScore(prediction.first_to_score??null);setOverUnder(prediction.over_under??null);} setEditing(false); }}
-              className="flex-1 py-2 rounded-xl text-xs font-bold text-[--muted]"
-              style={{ background: "linear-gradient(180deg, #1e293b, #0f172a)", border: "1px solid rgba(148,163,184,0.15)" }}
+              className="flex-1 py-2 rounded-xl text-xs font-bold text-slate-200 transition-all duration-150 hover:brightness-125 hover:-translate-y-px"
+              style={{
+                background: "linear-gradient(180deg, #263449, #121b2e)",
+                border: "1px solid rgba(148,163,184,0.3)",
+                boxShadow: "0 3px 8px rgba(0,0,0,0.4)",
+              }}
             >
               {t.cancel}
             </button>
             <button
               onClick={savePrediction}
               disabled={!canSave || saving}
-              className="flex-1 py-2 rounded-xl text-xs font-bold text-white disabled:opacity-40"
+              className="flex-1 py-2 rounded-xl text-xs font-bold text-white disabled:opacity-40 transition-all duration-150 hover:brightness-110 hover:-translate-y-px"
               style={{
                 background: "linear-gradient(180deg, #f59e0b, #d97706)",
                 boxShadow: "0 4px 10px rgba(245,158,11,0.3), inset 0 1px 0 rgba(255,255,255,0.2)",
@@ -346,7 +361,7 @@ export default function MatchCard({ match, prediction, userId, onUpdate }) {
           <button
             disabled={!canSave || saving}
             onClick={savePrediction}
-            className="w-full mt-3 py-3 rounded-xl text-xs font-extrabold tracking-wider uppercase transition-all duration-200 flex items-center justify-center gap-2 disabled:cursor-not-allowed"
+            className="w-full mt-3 py-3 rounded-xl text-xs font-extrabold tracking-wider uppercase transition-all duration-200 flex items-center justify-center gap-2 disabled:cursor-not-allowed hover:enabled:brightness-110 hover:enabled:-translate-y-px"
             style={
               canSave
                 ? {
@@ -356,10 +371,10 @@ export default function MatchCard({ match, prediction, userId, onUpdate }) {
                       "0 8px 20px rgba(16,185,129,0.4), 0 2px 4px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.25), inset 0 -2px 4px rgba(0,0,0,0.2)",
                   }
                 : {
-                    background: "linear-gradient(180deg, #1e293b, #0f172a)",
-                    color: "#64748b",
-                    boxShadow: "inset 0 2px 4px rgba(0,0,0,0.4)",
-                    border: "1px solid rgba(51,65,85,0.4)",
+                    background: "linear-gradient(180deg, #26344c, #141e33)",
+                    color: "#94a3b8",
+                    boxShadow: "0 3px 8px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.05)",
+                    border: "1px solid rgba(148,163,184,0.25)",
                   }
             }
           >
