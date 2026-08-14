@@ -186,18 +186,7 @@ export default function MatchCard({ match, prediction, userId, onUpdate }) {
                 : "bg-slate-900/50 border border-slate-800 text-slate-500 cursor-not-allowed"
             }`}
           >
-            {saving ? (
-              t.saving
-            ) : !userId ? (
-              t.signInToPredict
-            ) : canSave ? (
-              <>
-                <span>🔒</span>
-                <span>{t.lockPrediction}</span>
-              </>
-            ) : (
-              t.selectToLock
-            )}
+            {saving ? t.saving : !userId ? t.signInToPredict : canSave ? t.lockPrediction : t.selectToLock}
           </button>
         )}
         {statusLabel && (
