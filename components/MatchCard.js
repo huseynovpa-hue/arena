@@ -4,17 +4,70 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { useLang } from "@/lib/i18n";
 
+// Helper to format logo URLs (handles full URLs, relative paths, or filenames)
+function resolveLogoUrl(logoPath) {
+  if (!logoPath) return null;
+  
+  // If it's already a full web URL
+  if (logoPath.startsWith("http://") || logoPath.startsWith("https://")) {
+    return logoPath;
+  }
+  
+  // If it starts with a slash (local public folder)
+  if (logoPath.startsWith("/")) {
+    return logoPath;
+  }
+
+  // If it's just a file name like "fenerbahce.png"
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  if (supabaseUrl) {
+    return `${supabaseUrl}/storage/v1/object/public/logos/${logoPath}`;
+  }
+
+  return `/logos/${logoPath}`;
+}
+
 export default function MatchCard({ match, prediction, userId, onUpdate }) {
   if (!match) return null;
 
   const { t } = useLang();
 
-  // Normalize Supabase DB team names and logos
-  const homeTeamName = match.home_team || match.homeTeam?.name || "Home Team";
-  const awayTeamName = match.away_team || match.awayTeam?.name || "Away Team";
-  const homeLogo = match.home_logo || match.home_team_logo || match.home_logo_url || match.homeTeam?.logo;
-  const awayLogo = match.away_logo || match.away_team_logo || match.away_logo_url || match.awayTeam?.logo;
+  // Debug log: Open F12 Console in browser to see your exact Supabase column names
+  useEffect(() => {
+    console.log("Supabase Match Data:", match);
+  }, [match]);
+
+  // Normalize Team Names
+  const homeTeamName =
+    typeof match.home_team === "object" ? match.home_team?.name :
+    match.home_team || match.home_team_name || "Home Team";
+
+  const awayTeamName =
+    typeof match.away_team === "object" ? match.away_team?.name :
+    match.away_team || match.away_team_name || "Away Team";
+
+  // Normalize Logo Raw Values
+  const rawHomeLogo =
+    match.home_logo ||
+    match.home_team_logo ||
+    match.home_logo_url ||
+    match.home_team_logo_url ||
+    (typeof match.home_team === "object" ? (match.home_team?.logo || match.home_team?.logo_url) : null);
+
+  const rawAwayLogo =
+    match.away_logo ||
+    match.away_team_logo ||
+    match.away_logo_url ||
+    match.away_team_logo_url ||
+    (typeof match.away_team === "object" ? (match.away_team?.logo || match.away_team?.logo_url) : null);
+
+  const homeLogo = resolveLogoUrl(rawHomeLogo);
+  const awayLogo = resolveLogoUrl(rawAwayLogo);
   const leagueName = match.league || "Super Lig";
+
+  // State for image load errors
+  const [homeImgError, setHomeImgError] = useState(false);
+  const [awayImgError, setAwayImgError] = useState(false);
 
   // Live countdown state
   const [timeLeft, setTimeLeft] = useState("");
@@ -49,7 +102,7 @@ export default function MatchCard({ match, prediction, userId, onUpdate }) {
   const isFinished = match.status === "finished";
   const isMatchLocked = isFinished || match.status === "locked" || isTimeLocked;
 
-  // Form states initialized from props
+  // Prediction states
   const [homeScore, setHomeScore] = useState(prediction?.home_score ?? 0);
   const [awayScore, setAwayScore] = useState(prediction?.away_score ?? 0);
   const [overUnder, setOverUnder] = useState(prediction?.over_under ?? null);
@@ -58,7 +111,6 @@ export default function MatchCard({ match, prediction, userId, onUpdate }) {
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  // Sync state when predictions reload from Supabase
   useEffect(() => {
     if (prediction) {
       setHomeScore(prediction.home_score ?? 0);
@@ -71,7 +123,6 @@ export default function MatchCard({ match, prediction, userId, onUpdate }) {
   const hasPrediction = Boolean(prediction);
   const isFormReadonly = (hasPrediction && !isEditing) || isMatchLocked;
 
-  // Handle saving prediction to Supabase
   const handleSavePrediction = async () => {
     if (!userId) {
       alert("Please log in to submit predictions.");
@@ -108,7 +159,6 @@ export default function MatchCard({ match, prediction, userId, onUpdate }) {
     }
   };
 
-  // Helper for club initials fallback
   const getInitials = (name) => {
     if (!name) return "FC";
     return name.split(" ").map((w) => w[0]).join("").slice(0, 3).toUpperCase();
@@ -153,14 +203,15 @@ export default function MatchCard({ match, prediction, userId, onUpdate }) {
         {/* Home Team */}
         <div className="flex flex-col items-center gap-2 flex-1">
           <div className="w-14 h-14 rounded-2xl bg-slate-950 border border-slate-700 p-1 flex items-center justify-center shadow-inner">
-            {homeLogo ? (
+            {homeLogo && !homeImgError ? (
               <img
                 src={homeLogo}
                 alt={homeTeamName}
                 className="w-10 h-10 object-contain"
+                onError={() => setHomeImgError(true)}
               />
             ) : (
-              <span className="font-black text-amber-400 text-xs">
+              <span className="font-black text-amber-400 text-xs tracking-wider">
                 {getInitials(homeTeamName)}
               </span>
             )}
@@ -170,7 +221,7 @@ export default function MatchCard({ match, prediction, userId, onUpdate }) {
           </span>
         </div>
 
-        {/* Center Score Control */}
+        {/* Center Score Controls */}
         <div className="flex items-center gap-2">
           {/* Home Score */}
           <div className="flex items-center gap-1">
@@ -228,14 +279,15 @@ export default function MatchCard({ match, prediction, userId, onUpdate }) {
         {/* Away Team */}
         <div className="flex flex-col items-center gap-2 flex-1">
           <div className="w-14 h-14 rounded-2xl bg-slate-950 border border-slate-700 p-1 flex items-center justify-center shadow-inner">
-            {awayLogo ? (
+            {awayLogo && !awayImgError ? (
               <img
                 src={awayLogo}
                 alt={awayTeamName}
                 className="w-10 h-10 object-contain"
+                onError={() => setAwayImgError(true)}
               />
             ) : (
-              <span className="font-black text-amber-400 text-xs">
+              <span className="font-black text-amber-400 text-xs tracking-wider">
                 {getInitials(awayTeamName)}
               </span>
             )}
