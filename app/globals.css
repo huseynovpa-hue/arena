@@ -1,106 +1,98 @@
 @import "tailwindcss";
 
 :root {
-  --bg: #070b15;
-  --card-bg: linear-gradient(180deg, rgba(20, 32, 58, 0.94) 0%, rgba(11, 18, 35, 0.97) 100%);
-  --card-border: rgba(255, 255, 255, 0.16);
-  --text: #ffffff;
-  --muted: #94a3b8;
-  --emerald: #22c55e;
-  --gold: #f59e0b;
+  --game-card-bg: linear-gradient(180deg, rgba(30, 44, 76, 0.95) 0%, rgba(15, 23, 42, 0.98) 100%);
+  --game-border: rgba(255, 255, 255, 0.22);
 }
 
-body {
-  background-color: var(--bg);
-  color: var(--text);
-  overflow-x: hidden;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-}
-
-input[type="date"],
-input[type="time"] {
-  color-scheme: dark;
-}
-
-/* === HIGH-END PRO GAME CARD DESIGN === */
-.card {
-  background: var(--card-bg);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--card-border);
-  border-radius: 1.25rem;
-  overflow: hidden;
+/* === 3D GAME MATCH CARD CONTAINER === */
+.game-card {
+  background: var(--game-card-bg);
+  border: 1px solid var(--game-border);
+  border-radius: 1rem;
   box-shadow: 
-    0 20px 45px -10px rgba(0, 0, 0, 0.85),
-    inset 0 1px 0 rgba(255, 255, 255, 0.25); /* Top Edge Metallic Light */
+    0 10px 25px -5px rgba(0, 0, 0, 0.9),
+    0 4px 0 rgba(0, 0, 0, 0.5), /* Bottom depth shadow */
+    inset 0 1px 0 rgba(255, 255, 255, 0.35); /* Top metallic highlight */
+  position: relative;
 }
 
-/* Primary Glossy Green Action Button */
-.btn-accent {
+/* === 3D "COLLECT" GREEN BUTTON (Exact match to reference image) === */
+.btn-game-green {
   background: linear-gradient(180deg, #4ade80 0%, #16a34a 60%, #15803d 100%);
   color: #ffffff;
   font-weight: 800;
-  padding: 0.7rem 1.6rem;
-  border-radius: 0.75rem;
-  transition: all 0.2s ease;
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  box-shadow: 
-    0 6px 20px rgba(34, 197, 94, 0.45),
-    inset 0 1px 0 rgba(255, 255, 255, 0.4);
-  cursor: pointer;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  letter-spacing: 0.05em;
+  padding: 0.75rem 2rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 
+    0 4px 0 #0f5127, /* Solid bottom 3D shadow */
+    0 8px 18px rgba(0, 0, 0, 0.6),
+    inset 0 2px 0 rgba(255, 255, 255, 0.5); /* Glossy top shine */
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+  transition: all 0.1s ease;
+  cursor: pointer;
 }
 
-.btn-accent:hover:not(:disabled) {
-  transform: translateY(-1.5px);
-  box-shadow: 0 8px 25px rgba(34, 197, 94, 0.65);
+.btn-game-green:active {
+  transform: translateY(3px);
+  box-shadow: 
+    0 1px 0 #0f5127,
+    0 3px 8px rgba(0, 0, 0, 0.6),
+    inset 0 2px 0 rgba(255, 255, 255, 0.5);
 }
 
-/* Trophy Gold Button */
-.btn-gold {
-  background: linear-gradient(180deg, #fbbf24 0%, #d97706 60%, #b45309 100%);
+/* === 3D "21:08" TIMER BLUE BUTTON === */
+.btn-game-blue {
+  background: linear-gradient(180deg, #60a5fa 0%, #2563eb 60%, #1d4ed8 100%);
   color: #ffffff;
   font-weight: 800;
-  padding: 0.7rem 1.6rem;
+  padding: 0.65rem 1.75rem;
   border-radius: 0.75rem;
-  transition: all 0.2s ease;
-  border: 1px solid rgba(255, 255, 255, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.5);
   box-shadow: 
-    0 6px 20px rgba(245, 158, 11, 0.45),
-    inset 0 1px 0 rgba(255, 255, 255, 0.4);
-  cursor: pointer;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+    0 4px 0 #1e3a8a, /* Solid bottom 3D shadow */
+    0 8px 18px rgba(0, 0, 0, 0.6),
+    inset 0 2px 0 rgba(255, 255, 255, 0.5);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
 }
 
-/* Match Choice Pills */
-.btn-outline {
-  background: rgba(255, 255, 255, 0.07);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  color: #ffffff;
-  font-weight: 700;
-  padding: 0.65rem 1.25rem;
-  border-radius: 0.75rem;
-  transition: all 0.2s ease;
-  cursor: pointer;
+/* === MATCH HEADER RIBBON (🏆 League - Day 13/26) === */
+.game-ribbon {
+  background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
-.btn-outline:hover {
-  border-color: #4ade80;
-  background: rgba(34, 197, 94, 0.22);
-  box-shadow: 0 0 15px rgba(34, 197, 94, 0.35);
+/* === 3D CIRCULAR TEAM BADGE FRAME === */
+.game-badge-frame {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #e2e8f0 0%, #64748b 50%, #334155 100%);
+  padding: 3px;
+  box-shadow: 
+    0 6px 12px rgba(0, 0, 0, 0.6),
+    inset 0 2px 2px rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-/* Inputs */
-.input-dark {
+.game-badge-inner {
   width: 100%;
-  padding: 0.7rem 1rem;
-  background: rgba(7, 12, 24, 0.95);
-  border: 1px solid var(--card-border);
-  border-radius: 0.75rem;
-  color: #ffffff;
-  font-size: 0.875rem;
-  outline: none;
+  height: 100%;
+  border-radius: 50%;
+  background: #0f172a;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
