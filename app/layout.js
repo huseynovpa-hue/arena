@@ -17,41 +17,18 @@ export const viewport = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className="min-h-screen antialiased flex flex-col bg-[#070a12] text-[#f1f5f9]">
-        {/* === VISIBLE STADIUM AMBIENT BACKGROUND === */}
+      <body className="min-h-screen antialiased flex flex-col bg-[#070a12] text-[#f1f5f9] relative">
+        {/* === STADIUM PICTURE BACKGROUND === */}
         <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden" aria-hidden="true">
-          {/* Subtle Grid Pattern */}
+          {/* Background Image (Replace URL with your own image or /stadium-bg.jpg in public folder) */}
           <div 
-            className="absolute inset-0 opacity-15" 
+            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
             style={{
-              backgroundImage: `radial-gradient(rgba(255, 255, 255, 0.2) 1px, transparent 1px)`,
-              backgroundSize: "28px 28px"
+              backgroundImage: `url('https://images.unsplash.com/photo-1508098682722-e99c43a406b2?q=80&w=2070&auto=format&fit=crop')`,
             }}
           />
-
-          {/* Top Emerald Stadium Light */}
-          <div 
-            className="absolute -top-28 left-1/2 -translate-x-1/2 w-[700px] h-[450px] pointer-events-none"
-            style={{
-              background: "radial-gradient(circle, rgba(16, 185, 129, 0.35) 0%, rgba(16, 185, 129, 0) 70%)",
-            }}
-          />
-
-          {/* Mid-Right Blue Ambient Glow */}
-          <div 
-            className="absolute top-1/4 -right-24 w-[550px] h-[550px] pointer-events-none"
-            style={{
-              background: "radial-gradient(circle, rgba(59, 130, 246, 0.25) 0%, rgba(59, 130, 246, 0) 70%)",
-            }}
-          />
-
-          {/* Bottom-Left Gold Glow */}
-          <div 
-            className="absolute -bottom-20 -left-20 w-[550px] h-[550px] pointer-events-none"
-            style={{
-              background: "radial-gradient(circle, rgba(245, 158, 11, 0.22) 0%, rgba(245, 158, 11, 0) 70%)",
-            }}
-          />
+          {/* Dark Contrast Mask to separate background from text and UI */}
+          <div className="absolute inset-0 bg-[#070a12]/80 backdrop-blur-[1px]" />
         </div>
 
         <LangWrapper>
