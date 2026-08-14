@@ -15,11 +15,7 @@
 }
 
 body {
-  background-color: var(--bg);
-  background-image: url("/pitch-bg.svg");
-  background-size: 100% auto;
-  background-position: center top;
-  background-repeat: repeat-y;
+  background: var(--bg);
   color: var(--text);
 }
 
