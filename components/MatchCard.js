@@ -179,11 +179,18 @@ export default function MatchCard({ match, prediction, userId, onUpdate }) {
           </div>
         )}
         {!saved && !isExpired && (
-          <button disabled={!canSave || saving} onClick={savePrediction}
-            className={`w-full mt-2.5 py-2.5 rounded-xl text-xs font-bold tracking-wide transition-all ${
-              canSave ? "bg-gradient-to-r from-green-500 to-green-600 text-white" : "bg-[--surface] border border-[--border] text-[--muted] cursor-not-allowed"
-            }`}>{saving ? t.saving : !userId ? t.signInToPredict : canSave ? t.lockPrediction : t.selectToLock}</button>
-        )}
+  <button 
+    disabled={!canSave || saving} 
+    onClick={savePrediction}
+    className={`w-full mt-3 py-3 rounded-xl text-xs font-extrabold tracking-wider uppercase transition-all duration-200 ${
+      canSave 
+        ? "bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-[0_4px_20px_rgba(16,185,129,0.35)] hover:shadow-[0_6px_25px_rgba(16,185,129,0.5)] hover:scale-[1.01] active:scale-[0.98]" 
+        : "bg-slate-900/50 border border-slate-800 text-slate-500 cursor-not-allowed"
+    }`}
+  >
+    {saving ? t.saving : !userId ? t.signInToPredict : canSave ? `🔒 ${t.lockPrediction}` : t.selectToLock}
+  </button>
+)}
         {statusLabel && (
           <div className={`mt-2 py-2 rounded-xl text-center border text-[11px] font-bold tracking-wide ${statusLabel.bg} ${statusLabel.color}`}>{statusLabel.text}</div>
         )}
