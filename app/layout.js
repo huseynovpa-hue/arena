@@ -3,8 +3,8 @@ import { LanguageProvider } from "@/lib/i18n";
 import Navbar from "@/components/Navbar";
 
 export const metadata = {
-  title: "ARENA - Football Predictions",
-  description: "Predict match scores and climb the leaderboard!",
+  title: "ARENA",
+  description: "Football Predictions",
 };
 
 export default function RootLayout({ children }) {
