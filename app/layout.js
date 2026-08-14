@@ -1,126 +1,86 @@
+"use client";
 import "./globals.css";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
-import { LangWrapper } from "@/components/LangWrapper";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { LanguageProvider, useLang } from "@/lib/i18n";
 
-export const metadata = {
-  title: "Arena — Football Predictions",
-  description: "Predict football scores, compete weekly, win prizes.",
-};
+function NavContent({ children }) {
+  const pathname = usePathname();
+  const { lang, setLang, t } = useLang();
 
-export const viewport = {
-  width: "device-width",
-  initialScale: 1,
-  maximumScale: 1,
-};
+  const navLinks = [
+    { href: "/", label: t.matches || "Matches", icon: "⚽" },
+    { href: "/leaderboard", label: t.leaderboard || "Leaderboard", icon: "🏆" },
+    { href: "/about", label: t.about || "About", icon: "ℹ️" },
+  ];
+
+  return (
+    <div className="min-h-screen flex flex-col justify-between">
+      {/* Header */}
+      <header className="sticky top-0 z-50 bg-[#0b0f19]/80 backdrop-blur-md border-b border-[--border]">
+        <div className="max-w-3xl mx-auto px-4 h-16 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-2 group">
+            <span className="text-2xl transition-transform group-hover:scale-110">⚽</span>
+            <span className="font-black text-xl tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-200">
+              ARENA
+            </span>
+          </Link>
+
+          {/* Navigation & Language Picker */}
+          <div className="flex items-center gap-3">
+            <nav className="flex items-center gap-1.5">
+              {navLinks.map((link) => {
+                const isActive = pathname === link.href;
+                return (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                      isActive
+                        ? "bg-green-500/15 text-green-400 border border-green-500/30 shadow-[0_2px_10px_rgba(34,197,94,0.15)]"
+                        : "text-[--muted] hover:text-[--text] hover:bg-white/5"
+                    }`}
+                  >
+                    <span>{link.icon}</span>
+                    <span>{link.label}</span>
+                  </Link>
+                );
+              })}
+            </nav>
+
+            {/* Language Switcher Button */}
+            <button
+              onClick={() => setLang(lang === "en" ? "az" : "en")}
+              className="btn-3d-surface !px-2.5 !py-1 !text-[11px] uppercase tracking-wide font-extrabold"
+            >
+              🌐 {lang === "en" ? "AZ" : "EN"}
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Content Area */}
+      <main className="max-w-3xl mx-auto px-4 w-full flex-1">
+        {children}
+      </main>
+
+      {/* Footer */}
+      <footer className="border-t border-[--border] mt-12 py-6 bg-[#0b0f19]/50">
+        <div className="max-w-3xl mx-auto px-4 text-center text-xs text-[--muted]">
+          <p>© {new Date().getFullYear()} ARENA. All rights reserved.</p>
+        </div>
+      </footer>
+    </div>
+  );
+}
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className="min-h-screen antialiased flex flex-col bg-[#070b15] text-[#f8fafc] relative">
-        {/* === EMBEDDED HIGH-DEF VECTOR STADIUM BACKGROUND === */}
-        <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden" aria-hidden="true">
-          <svg 
-            className="w-full h-full object-cover" 
-            viewBox="0 0 1440 900" 
-            preserveAspectRatio="xMidYMid slice"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <defs>
-              {/* Sky & Stadium Base */}
-              <linearGradient id="skyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stopColor="#0a1122" />
-                <stop offset="50%" stopColor="#132247" />
-                <stop offset="100%" stopColor="#1a3365" />
-              </linearGradient>
-
-              {/* Floodlight Beam Glows */}
-              <radialGradient id="centerLight" cx="50%" cy="10%" r="60%">
-                <stop offset="0%" stopColor="#ffffff" stopOpacity="0.8" />
-                <stop offset="25%" stopColor="#60a5fa" stopOpacity="0.4" />
-                <stop offset="60%" stopColor="#1d4ed8" stopOpacity="0.1" />
-                <stop offset="100%" stopColor="#000000" stopOpacity="0" />
-              </radialGradient>
-
-              <radialGradient id="sideLightLeft" cx="15%" cy="15%" r="45%">
-                <stop offset="0%" stopColor="#fbbf24" stopOpacity="0.5" />
-                <stop offset="50%" stopColor="#f59e0b" stopOpacity="0.15" />
-                <stop offset="100%" stopColor="#000000" stopOpacity="0" />
-              </radialGradient>
-
-              <radialGradient id="sideLightRight" cx="85%" cy="15%" r="45%">
-                <stop offset="0%" stopColor="#34d399" stopOpacity="0.5" />
-                <stop offset="50%" stopColor="#10b981" stopOpacity="0.15" />
-                <stop offset="100%" stopColor="#000000" stopOpacity="0" />
-              </radialGradient>
-
-              {/* Stadium Stands Arc */}
-              <linearGradient id="standsGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stopColor="#0f172a" stopOpacity="0.9" />
-                <stop offset="100%" stopColor="#1e293b" stopOpacity="0.95" />
-              </linearGradient>
-
-              {/* 3D Grass Pitch Gradient */}
-              <linearGradient id="pitchGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stopColor="#22c55e" />
-                <stop offset="35%" stopColor="#16a34a" />
-                <stop offset="70%" stopColor="#15803d" />
-                <stop offset="100%" stopColor="#0b4620" />
-              </linearGradient>
-
-              {/* Vignette Overlay */}
-              <radialGradient id="vignette" cx="50%" cy="50%" r="70%">
-                <stop offset="40%" stopColor="#000000" stopOpacity="0" />
-                <stop offset="100%" stopColor="#050811" stopOpacity="0.75" />
-              </radialGradient>
-            </defs>
-
-            {/* 1. Sky */}
-            <rect width="1440" height="900" fill="url(#skyGrad)" />
-
-            {/* 2. Floodlight Rays */}
-            <rect width="1440" height="500" fill="url(#centerLight)" />
-            <rect width="1440" height="500" fill="url(#sideLightLeft)" />
-            <rect width="1440" height="500" fill="url(#sideLightRight)" />
-
-            {/* Light Beams */}
-            <polygon points="150,50 0,550 500,550" fill="#ffffff" opacity="0.08" />
-            <polygon points="1290,50 940,550 1440,550" fill="#ffffff" opacity="0.08" />
-
-            {/* 3. Stadium Crowd Stands (Curved Silhouette) */}
-            <path d="M -100 480 Q 720 400 1540 480 L 1540 550 L -100 550 Z" fill="url(#standsGrad)" />
-            
-            {/* Stadium Roof Lights */}
-            <line x1="100" y1="420" x2="1340" y2="420" stroke="#64748b" strokeWidth="2" opacity="0.3" />
-            <circle cx="200" cy="420" r="4" fill="#ffffff" opacity="0.9" />
-            <circle cx="230" cy="420" r="4" fill="#ffffff" opacity="0.9" />
-            <circle cx="260" cy="420" r="4" fill="#ffffff" opacity="0.9" />
-            <circle cx="1180" cy="420" r="4" fill="#ffffff" opacity="0.9" />
-            <circle cx="1210" cy="420" r="4" fill="#ffffff" opacity="0.9" />
-            <circle cx="1240" cy="420" r="4" fill="#ffffff" opacity="0.9" />
-
-            {/* 4. Curved Perspective Pitch */}
-            <path d="M -200 900 L -100 520 Q 720 450 1540 520 L 1640 900 Z" fill="url(#pitchGrad)" />
-
-            {/* Pitch Horizon Line */}
-            <path d="M -100 520 Q 720 450 1540 520" stroke="#ffffff" strokeWidth="2" opacity="0.6" fill="none" />
-
-            {/* Perspective Pitch Lines */}
-            <path d="M 320 540 Q 720 490 1120 540 L 1220 700 Q 720 630 220 700 Z" stroke="#ffffff" strokeWidth="2" opacity="0.25" fill="none" />
-            <ellipse cx="720" cy="510" rx="180" ry="40" stroke="#ffffff" strokeWidth="2" opacity="0.2" fill="none" />
-
-            {/* 5. Vignette Overlay */}
-            <rect width="1440" height="900" fill="url(#vignette)" />
-          </svg>
-        </div>
-
-        <LangWrapper>
-          <div className="relative z-10 flex flex-col min-h-screen">
-            <Navbar />
-            <main className="max-w-2xl mx-auto px-3 sm:px-4 pb-12 flex-1 w-full">{children}</main>
-            <Footer />
-          </div>
-        </LangWrapper>
+      <body>
+        <LanguageProvider>
+          <NavContent>{children}</NavContent>
+        </LanguageProvider>
       </body>
     </html>
   );
