@@ -1,47 +1,26 @@
-import "./globals.css";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
-import { LangWrapper } from "@/components/LangWrapper";
-
-export const metadata = {
-  title: "Arena — Football Predictions",
-  description: "Predict football scores, compete weekly, win prizes.",
-};
-
-export const viewport = {
-  width: "device-width",
-  initialScale: 1,
-  maximumScale: 1,
-};
-
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className="min-h-screen antialiased flex flex-col" style={{ background: "#080c16", color: "#e4e9f2" }}>
-        <div
-          aria-hidden="true"
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            width: "100vw",
-            height: "100vh",
-            pointerEvents: "none",
-            zIndex: 0,
-            opacity: 0.7,
-            backgroundImage: `url("data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1200"><rect x="80" y="60" width="640" height="1080" fill="none" stroke="#22c55e" stroke-width="3"/><line x1="80" y1="600" x2="720" y2="600" stroke="#22c55e" stroke-width="3"/><circle cx="400" cy="600" r="120" fill="none" stroke="#22c55e" stroke-width="3"/><circle cx="400" cy="600" r="8" fill="#22c55e"/><rect x="220" y="60" width="360" height="180" fill="none" stroke="#22c55e" stroke-width="3"/><rect x="300" y="60" width="200" height="72" fill="none" stroke="#22c55e" stroke-width="3"/><path d="M300 240Q400 300 500 240" fill="none" stroke="#22c55e" stroke-width="3"/><circle cx="400" cy="204" r="6" fill="#22c55e"/><rect x="220" y="960" width="360" height="180" fill="none" stroke="#22c55e" stroke-width="3"/><rect x="300" y="1068" width="200" height="72" fill="none" stroke="#22c55e" stroke-width="3"/><path d="M300 960Q400 900 500 960" fill="none" stroke="#22c55e" stroke-width="3"/><circle cx="400" cy="996" r="6" fill="#22c55e"/></svg>')}")`,
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-            backgroundRepeat: "no-repeat",
-          }}
-        />
-        <LangWrapper>
-          <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", minHeight: "100vh" }}>
-            <Navbar />
-            <main className="max-w-2xl mx-auto px-3 sm:px-4 pb-12 flex-1 w-full">{children}</main>
-            <Footer />
-          </div>
-        </LangWrapper>
+      <body class="relative min-h-screen bg-[#0b0f19] text-slate-100 antialiased selection:bg-emerald-500 selection:text-black">
+        {/* === ATMOSPHERIC BACKGROUND LAYER === */}
+        <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+          {/* Tactical pitch grid pattern */}
+          <div className="absolute inset-0 bg-pitch-grid opacity-30" />
+          
+          {/* Top Green/Emerald Stadium Glow */}
+          <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[600px] h-[350px] bg-emerald-500/20 blur-[130px] rounded-full" />
+          
+          {/* Secondary Blue Ambient Light */}
+          <div className="absolute top-1/3 -right-20 w-[400px] h-[400px] bg-blue-600/15 blur-[140px] rounded-full" />
+          
+          {/* Accent Gold Light at Bottom Left */}
+          <div className="absolute -bottom-20 -left-20 w-[500px] h-[500px] bg-amber-500/10 blur-[150px] rounded-full" />
+        </div>
+
+        {/* === MAIN CONTENT LAYER === */}
+        <div className="relative z-10 flex min-h-screen flex-col">
+          {children}
+        </div>
       </body>
     </html>
   );
