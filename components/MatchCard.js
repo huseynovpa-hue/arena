@@ -14,12 +14,30 @@ function TeamLogo({ src, size = 36 }) {
 
 function ScoreBtn({ value, onChange, disabled }) {
   return (
-    <div className="flex items-center gap-1">
-      <button disabled={disabled || value <= 0} onClick={() => onChange(Math.max(0, value - 1))}
-        className="w-6 h-6 sm:w-7 sm:h-7 rounded-md bg-[--card] border border-[--border] text-[--muted] text-sm sm:text-base font-bold flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed">−</button>
-      <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center text-lg sm:text-xl font-extrabold transition-colors ${disabled ? "bg-[--surface] border-2 border-[--border] text-[--muted]" : "bg-[--bg] border-2 border-green-500 text-white"}`}>{value}</div>
-      <button disabled={disabled} onClick={() => onChange(value + 1)}
-        className="w-6 h-6 sm:w-7 sm:h-7 rounded-md bg-[--card] border border-[--border] text-[--muted] text-sm sm:text-base font-bold flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed">+</button>
+    <div className="flex items-center gap-1.5">
+      <button 
+        disabled={disabled || value <= 0} 
+        onClick={() => onChange(Math.max(0, value - 1))}
+        className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-slate-900/80 border border-slate-700/60 text-slate-300 font-bold flex items-center justify-center hover:bg-slate-800 active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+      >
+        −
+      </button>
+
+      <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center text-lg sm:text-xl font-black transition-all ${
+        disabled 
+          ? "bg-slate-900/40 border border-slate-800 text-slate-500" 
+          : "bg-slate-950/90 border-2 border-emerald-500 text-white shadow-[0_0_15px_rgba(16,185,129,0.3)]"
+      }`}>
+        {value}
+      </div>
+
+      <button 
+        disabled={disabled} 
+        onClick={() => onChange(value + 1)}
+        className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-slate-900/80 border border-slate-700/60 text-slate-300 font-bold flex items-center justify-center hover:bg-slate-800 active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+      >
+        +
+      </button>
     </div>
   );
 }
