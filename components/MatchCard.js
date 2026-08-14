@@ -5,23 +5,37 @@ import { formatDate } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
 import { useLang } from "@/lib/i18n";
 
-function TeamLogo({ src, size = 48 }) {
+function TeamLogo({ src, size = 52 }) {
   const [err, setErr] = useState(false);
+  const wrapStyle = {
+    width: size,
+    height: size,
+    background: "radial-gradient(circle at 35% 30%, #1e2942, #0a0f1c 75%)",
+    boxShadow:
+      "0 6px 14px rgba(0,0,0,0.55), 0 2px 4px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.08), inset 0 -2px 4px rgba(0,0,0,0.5)",
+  };
   if (!src || err)
     return (
       <div
-        className="rounded-full bg-[--surface] border-2 border-amber-400/60 flex items-center justify-center text-[--muted] shadow-[0_0_12px_rgba(251,191,36,0.15)]"
-        style={{ width: size, height: size, fontSize: size * 0.4 }}
+        className="rounded-full border-2 border-amber-400/70 flex items-center justify-center text-[--muted]"
+        style={{ ...wrapStyle, fontSize: size * 0.4 }}
       >
         ⚽
       </div>
     );
   return (
     <div
-      className="rounded-full border-2 border-amber-400/60 shadow-[0_0_12px_rgba(251,191,36,0.15)] overflow-hidden bg-[--surface] flex items-center justify-center"
-      style={{ width: size, height: size }}
+      className="rounded-full border-2 border-amber-400/70 overflow-hidden flex items-center justify-center"
+      style={wrapStyle}
     >
-      <img src={src} alt="" width={size * 0.75} height={size * 0.75} className="object-contain" onError={() => setErr(true)} />
+      <img
+        src={src}
+        alt=""
+        width={size * 0.72}
+        height={size * 0.72}
+        className="object-contain drop-shadow-[0_2px_3px_rgba(0,0,0,0.6)]"
+        onError={() => setErr(true)}
+      />
     </div>
   );
 }
@@ -32,21 +46,47 @@ function ScoreBtn({ value, onChange, disabled }) {
       <button
         disabled={disabled || value <= 0}
         onClick={() => onChange(Math.max(0, value - 1))}
-        className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-slate-900/80 border border-slate-700/60 text-slate-300 font-bold flex items-center justify-center hover:bg-slate-800 active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+        className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg text-slate-300 font-bold flex items-center justify-center active:scale-90 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+        style={{
+          background: "linear-gradient(180deg, #1e293b, #0f172a)",
+          boxShadow:
+            "0 3px 6px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08), inset 0 -1px 0 rgba(0,0,0,0.4)",
+          border: "1px solid rgba(148,163,184,0.15)",
+        }}
       >
         −
       </button>
-      <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center text-lg sm:text-xl font-black transition-all ${
-        disabled
-          ? "bg-slate-900/40 border border-slate-800 text-slate-500"
-          : "bg-slate-950/90 border-2 border-emerald-500 text-white shadow-[0_0_15px_rgba(16,185,129,0.3)]"
-      }`}>
+      <div
+        className={`w-11 h-11 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center text-lg sm:text-xl font-black transition-all ${
+          disabled ? "text-slate-500" : "text-white"
+        }`}
+        style={
+          disabled
+            ? {
+                background: "linear-gradient(180deg, #0f172a, #0a0f1c)",
+                boxShadow: "inset 0 2px 4px rgba(0,0,0,0.6)",
+                border: "1px solid rgba(51,65,85,0.4)",
+              }
+            : {
+                background: "linear-gradient(180deg, #0f2f26, #06120e)",
+                boxShadow:
+                  "0 4px 10px rgba(16,185,129,0.25), inset 0 1px 1px rgba(255,255,255,0.1), inset 0 -2px 4px rgba(0,0,0,0.5)",
+                border: "1.5px solid #10b981",
+              }
+        }
+      >
         {value}
       </div>
       <button
         disabled={disabled}
         onClick={() => onChange(value + 1)}
-        className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-slate-900/80 border border-slate-700/60 text-slate-300 font-bold flex items-center justify-center hover:bg-slate-800 active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+        className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg text-slate-300 font-bold flex items-center justify-center active:scale-90 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+        style={{
+          background: "linear-gradient(180deg, #1e293b, #0f172a)",
+          boxShadow:
+            "0 3px 6px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08), inset 0 -1px 0 rgba(0,0,0,0.4)",
+          border: "1px solid rgba(148,163,184,0.15)",
+        }}
       >
         +
       </button>
@@ -106,16 +146,24 @@ export default function MatchCard({ match, prediction, userId, onUpdate }) {
 
   return (
     <div
-      className={`rounded-2xl overflow-hidden border transition-colors ${
-        saved && !editing ? "border-green-500/25" : "border-[--border]"
-      }`}
+      className="rounded-2xl overflow-hidden transition-transform duration-200 hover:-translate-y-0.5"
       style={{
-        background: "linear-gradient(180deg, rgba(15,23,42,0.9), rgba(7,11,21,0.95))",
+        background: "linear-gradient(180deg, #17203a 0%, #0b1120 55%, #080c17 100%)",
+        border: saved && !editing ? "1px solid rgba(16,185,129,0.35)" : "1px solid rgba(148,163,184,0.12)",
+        boxShadow:
+          "0 14px 30px rgba(0,0,0,0.55), 0 4px 10px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06)",
       }}
     >
-      {/* League / status banner — styled like a stadium scoreboard strip */}
-      <div className="flex items-center justify-between px-3 py-2 bg-gradient-to-r from-amber-500/10 via-transparent to-emerald-500/10 border-b border-[--border] gap-2">
-        <span className="text-[10px] text-amber-300/90 font-bold truncate flex items-center gap-1">
+      {/* League / status banner */}
+      <div
+        className="flex items-center justify-between px-3 py-2.5 gap-2"
+        style={{
+          background: "linear-gradient(180deg, rgba(245,158,11,0.14), rgba(245,158,11,0.02))",
+          borderBottom: "1px solid rgba(148,163,184,0.12)",
+          boxShadow: "inset 0 -1px 0 rgba(0,0,0,0.3)",
+        }}
+      >
+        <span className="text-[10px] text-amber-300 font-bold truncate flex items-center gap-1 drop-shadow-[0_1px_1px_rgba(0,0,0,0.6)]">
           🏆 {match.league}
         </span>
         <div className="flex items-center gap-1.5 shrink-0">
@@ -126,21 +174,30 @@ export default function MatchCard({ match, prediction, userId, onUpdate }) {
         </div>
       </div>
 
-      <div className="p-3">
-        {/* Team row — big circular badges with ring, like the club-vs-club screen */}
-        <div className="flex items-center justify-between mb-3 px-1">
-          <div className="flex flex-col items-center gap-1.5 flex-1 min-w-0">
-            <TeamLogo src={match.home_badge} size={48} />
+      <div className="p-3.5">
+        {/* Team row */}
+        <div className="flex items-center justify-between mb-3.5 px-1">
+          <div className="flex flex-col items-center gap-2 flex-1 min-w-0">
+            <TeamLogo src={match.home_badge} size={52} />
             <span className="text-[11px] sm:text-xs font-bold truncate text-center max-w-[90px]">{match.home_team}</span>
           </div>
-          <span className="text-[10px] font-extrabold text-amber-400 px-2 shrink-0">VS</span>
-          <div className="flex flex-col items-center gap-1.5 flex-1 min-w-0">
-            <TeamLogo src={match.away_badge} size={48} />
+          <span
+            className="text-[11px] font-extrabold text-amber-400 px-2.5 py-1 rounded-full shrink-0"
+            style={{
+              background: "linear-gradient(180deg, #1e293b, #0a0f1c)",
+              boxShadow: "0 3px 6px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.06)",
+              border: "1px solid rgba(245,158,11,0.3)",
+            }}
+          >
+            VS
+          </span>
+          <div className="flex flex-col items-center gap-2 flex-1 min-w-0">
+            <TeamLogo src={match.away_badge} size={52} />
             <span className="text-[11px] sm:text-xs font-bold truncate text-center max-w-[90px]">{match.away_team}</span>
           </div>
         </div>
 
-        <div className="flex items-center justify-center gap-3 sm:gap-4 mb-3">
+        <div className="flex items-center justify-center gap-3 sm:gap-4 mb-3.5">
           <ScoreBtn value={homeScore} onChange={setHomeScore} disabled={isInputDisabled} />
           <span className="text-[--muted] font-extrabold text-sm">—</span>
           <ScoreBtn value={awayScore} onChange={setAwayScore} disabled={isInputDisabled} />
@@ -148,7 +205,14 @@ export default function MatchCard({ match, prediction, userId, onUpdate }) {
 
         {prediction?.points != null && (
           <div className="flex justify-center mb-2.5">
-            <div className="bg-green-500/10 border border-green-500/30 rounded-lg px-4 py-1.5 text-center">
+            <div
+              className="rounded-lg px-4 py-1.5 text-center"
+              style={{
+                background: "linear-gradient(180deg, rgba(16,185,129,0.16), rgba(16,185,129,0.04))",
+                border: "1px solid rgba(16,185,129,0.35)",
+                boxShadow: "0 3px 8px rgba(16,185,129,0.15), inset 0 1px 0 rgba(255,255,255,0.05)",
+              }}
+            >
               <div className="text-[9px] text-green-400 uppercase tracking-wider">{t.earned}</div>
               <div className="text-[14px] font-bold text-green-400">{prediction.points} pts</div>
             </div>
@@ -164,48 +228,117 @@ export default function MatchCard({ match, prediction, userId, onUpdate }) {
         )}
 
         <div className="mt-2.5">
-          <div className="text-[9px] text-[--muted] uppercase tracking-wider text-center mb-1">{t.overUnder}</div>
+          <div className="text-[9px] text-[--muted] uppercase tracking-wider text-center mb-1.5">{t.overUnder}</div>
           <div className="flex gap-1.5 justify-center">
             {[{ val: "over", label: t.over }, { val: "under", label: t.under }].map((o) => (
-              <button key={o.val} disabled={isInputDisabled} onClick={() => setOverUnder(o.val)}
-                className={`flex-1 max-w-[160px] py-1.5 px-2 rounded-lg text-[11px] font-semibold border-[1.5px] transition-all ${
-                  overUnder === o.val ? o.val === "over" ? "bg-green-500/15 border-green-500 text-green-400" : "bg-blue-500/15 border-blue-500 text-blue-400" : "bg-[--bg] border-[--border] text-[--muted]"
-                } disabled:cursor-not-allowed`}>{o.label}</button>
+              <button
+                key={o.val}
+                disabled={isInputDisabled}
+                onClick={() => setOverUnder(o.val)}
+                className="flex-1 max-w-[160px] py-1.5 px-2 rounded-lg text-[11px] font-semibold transition-all disabled:cursor-not-allowed"
+                style={
+                  overUnder === o.val
+                    ? {
+                        background:
+                          o.val === "over"
+                            ? "linear-gradient(180deg, rgba(16,185,129,0.22), rgba(16,185,129,0.05))"
+                            : "linear-gradient(180deg, rgba(59,130,246,0.22), rgba(59,130,246,0.05))",
+                        border: o.val === "over" ? "1.5px solid #10b981" : "1.5px solid #3b82f6",
+                        color: o.val === "over" ? "#34d399" : "#60a5fa",
+                        boxShadow: "0 3px 6px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.06)",
+                      }
+                    : {
+                        background: "linear-gradient(180deg, #131c30, #0a0f1c)",
+                        border: "1px solid rgba(148,163,184,0.15)",
+                        color: "var(--muted)",
+                        boxShadow: "inset 0 1px 2px rgba(0,0,0,0.4)",
+                      }
+                }
+              >
+                {o.label}
+              </button>
             ))}
           </div>
         </div>
 
         <div className="mt-2.5">
-          <div className="text-[9px] text-[--muted] uppercase tracking-wider text-center mb-1">{t.firstToScore}</div>
+          <div className="text-[9px] text-[--muted] uppercase tracking-wider text-center mb-1.5">{t.firstToScore}</div>
           <div className="flex gap-1 sm:gap-1.5 justify-center">
             {ftsOptions.map((o) => (
-              <button key={o.val} disabled={isInputDisabled} onClick={() => setFirstToScore(o.val)}
-                className={`flex-1 py-1.5 px-1 rounded-lg text-[10px] sm:text-[11px] font-semibold border-[1.5px] transition-all truncate ${
-                  firstToScore === o.val ? "bg-green-500/15 border-green-500 text-green-400" : "bg-[--bg] border-[--border] text-[--muted]"
-                } disabled:cursor-not-allowed`}>{o.label}</button>
+              <button
+                key={o.val}
+                disabled={isInputDisabled}
+                onClick={() => setFirstToScore(o.val)}
+                className="flex-1 py-1.5 px-1 rounded-lg text-[10px] sm:text-[11px] font-semibold transition-all truncate disabled:cursor-not-allowed"
+                style={
+                  firstToScore === o.val
+                    ? {
+                        background: "linear-gradient(180deg, rgba(16,185,129,0.22), rgba(16,185,129,0.05))",
+                        border: "1.5px solid #10b981",
+                        color: "#34d399",
+                        boxShadow: "0 3px 6px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.06)",
+                      }
+                    : {
+                        background: "linear-gradient(180deg, #131c30, #0a0f1c)",
+                        border: "1px solid rgba(148,163,184,0.15)",
+                        color: "var(--muted)",
+                        boxShadow: "inset 0 1px 2px rgba(0,0,0,0.4)",
+                      }
+                }
+              >
+                {o.label}
+              </button>
             ))}
           </div>
         </div>
 
         {saved && !editing && (
-          <div className="mt-2.5 py-2 px-2.5 rounded-xl bg-blue-500/10 border border-blue-500/25 flex items-center justify-between gap-2">
+          <div
+            className="mt-2.5 py-2 px-2.5 rounded-xl flex items-center justify-between gap-2"
+            style={{
+              background: "linear-gradient(180deg, rgba(59,130,246,0.14), rgba(59,130,246,0.03))",
+              border: "1px solid rgba(59,130,246,0.3)",
+              boxShadow: "inset 0 1px 0 rgba(255,255,255,0.05)",
+            }}
+          >
             <span className="text-blue-400 text-[10px] sm:text-[11px] font-bold truncate">
               {prediction?.home_score}:{prediction?.away_score} · {ouLabel} · {ftsLabel}
             </span>
             {!isExpired && (
-              <button onClick={() => setEditing(true)}
-                className="text-[10px] font-bold text-amber-400 bg-amber-500/15 border border-amber-500/30 px-2 py-1 rounded-lg hover:bg-amber-500/25 shrink-0">✏️</button>
+              <button
+                onClick={() => setEditing(true)}
+                className="text-[10px] font-bold text-amber-400 px-2 py-1 rounded-lg shrink-0"
+                style={{
+                  background: "linear-gradient(180deg, rgba(245,158,11,0.2), rgba(245,158,11,0.06))",
+                  border: "1px solid rgba(245,158,11,0.35)",
+                }}
+              >
+                ✏️
+              </button>
             )}
           </div>
         )}
 
         {editing && (
           <div className="mt-2.5 flex gap-2">
-            <button onClick={() => { if(prediction){setHomeScore(prediction.home_score??0);setAwayScore(prediction.away_score??0);setFirstToScore(prediction.first_to_score??null);setOverUnder(prediction.over_under??null);} setEditing(false); }}
-              className="flex-1 py-2 rounded-xl text-xs font-bold border border-[--border] text-[--muted]">{t.cancel}</button>
-            <button onClick={savePrediction} disabled={!canSave || saving}
-              className="flex-1 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-amber-500 to-amber-600 text-white disabled:opacity-40">
-              {saving ? t.saving : t.saveChanges}</button>
+            <button
+              onClick={() => { if(prediction){setHomeScore(prediction.home_score??0);setAwayScore(prediction.away_score??0);setFirstToScore(prediction.first_to_score??null);setOverUnder(prediction.over_under??null);} setEditing(false); }}
+              className="flex-1 py-2 rounded-xl text-xs font-bold text-[--muted]"
+              style={{ background: "linear-gradient(180deg, #1e293b, #0f172a)", border: "1px solid rgba(148,163,184,0.15)" }}
+            >
+              {t.cancel}
+            </button>
+            <button
+              onClick={savePrediction}
+              disabled={!canSave || saving}
+              className="flex-1 py-2 rounded-xl text-xs font-bold text-white disabled:opacity-40"
+              style={{
+                background: "linear-gradient(180deg, #f59e0b, #d97706)",
+                boxShadow: "0 4px 10px rgba(245,158,11,0.3), inset 0 1px 0 rgba(255,255,255,0.2)",
+              }}
+            >
+              {saving ? t.saving : t.saveChanges}
+            </button>
           </div>
         )}
 
@@ -213,11 +346,22 @@ export default function MatchCard({ match, prediction, userId, onUpdate }) {
           <button
             disabled={!canSave || saving}
             onClick={savePrediction}
-            className={`w-full mt-3 py-3 rounded-xl text-xs font-extrabold tracking-wider uppercase transition-all duration-200 flex items-center justify-center gap-2 ${
+            className="w-full mt-3 py-3 rounded-xl text-xs font-extrabold tracking-wider uppercase transition-all duration-200 flex items-center justify-center gap-2 disabled:cursor-not-allowed"
+            style={
               canSave
-                ? "bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-[0_4px_20px_rgba(16,185,129,0.35)] hover:shadow-[0_6px_25px_rgba(16,185,129,0.5)] hover:scale-[1.01] active:scale-[0.98]"
-                : "bg-slate-900/50 border border-slate-800 text-slate-500 cursor-not-allowed"
-            }`}
+                ? {
+                    background: "linear-gradient(180deg, #10b981, #059669)",
+                    color: "white",
+                    boxShadow:
+                      "0 8px 20px rgba(16,185,129,0.4), 0 2px 4px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.25), inset 0 -2px 4px rgba(0,0,0,0.2)",
+                  }
+                : {
+                    background: "linear-gradient(180deg, #1e293b, #0f172a)",
+                    color: "#64748b",
+                    boxShadow: "inset 0 2px 4px rgba(0,0,0,0.4)",
+                    border: "1px solid rgba(51,65,85,0.4)",
+                  }
+            }
           >
             {saving ? t.saving : !userId ? t.signInToPredict : canSave ? t.lockPrediction : t.selectToLock}
           </button>
