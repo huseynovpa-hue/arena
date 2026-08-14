@@ -17,18 +17,49 @@ export const viewport = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className="min-h-screen antialiased flex flex-col bg-[#070a12] text-[#f1f5f9] relative">
-        {/* === STADIUM PICTURE BACKGROUND === */}
+      <body className="min-h-screen antialiased flex flex-col bg-[#070b14] text-[#f1f5f9] relative">
+        {/* === STADIUM LIGHTING & PITCH BACKGROUND === */}
         <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden" aria-hidden="true">
-          {/* Background Image (Replace URL with your own image or /stadium-bg.jpg in public folder) */}
+          {/* 1. Tactical Grid Pattern */}
           <div 
-            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+            className="absolute inset-0 opacity-25"
             style={{
-              backgroundImage: `url('https://images.unsplash.com/photo-1508098682722-e99c43a406b2?q=80&w=2070&auto=format&fit=crop')`,
+              backgroundImage: `
+                linear-gradient(to right, rgba(255,255,255,0.06) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255,255,255,0.06) 1px, transparent 1px)
+              `,
+              backgroundSize: "36px 36px"
             }}
           />
-          {/* Dark Contrast Mask to separate background from text and UI */}
-          <div className="absolute inset-0 bg-[#070a12]/80 backdrop-blur-[1px]" />
+
+          {/* 2. Top Stadium Center Emerald Pitch Floodlight */}
+          <div 
+            className="absolute -top-36 left-1/2 -translate-x-1/2 w-[1000px] h-[550px]"
+            style={{
+              background: "radial-gradient(circle, rgba(16, 185, 129, 0.32) 0%, rgba(5, 150, 105, 0.12) 45%, rgba(7, 11, 20, 0) 75%)",
+            }}
+          />
+
+          {/* 3. Blue Side Spotlight */}
+          <div 
+            className="absolute top-1/3 -right-36 w-[650px] h-[650px]"
+            style={{
+              background: "radial-gradient(circle, rgba(37, 99, 235, 0.22) 0%, rgba(7, 11, 20, 0) 70%)",
+            }}
+          />
+
+          {/* 4. Amber/Gold Bottom Spotlight */}
+          <div 
+            className="absolute -bottom-28 -left-28 w-[650px] h-[650px]"
+            style={{
+              background: "radial-gradient(circle, rgba(245, 158, 11, 0.2) 0%, rgba(7, 11, 20, 0) 70%)",
+            }}
+          />
+
+          {/* 5. Subtle Pitch Center Circle Ring */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] opacity-[0.07] border-2 border-emerald-400 rounded-full flex items-center justify-center">
+            <div className="w-[200px] h-[200px] border-2 border-emerald-400 rounded-full" />
+          </div>
         </div>
 
         <LangWrapper>
