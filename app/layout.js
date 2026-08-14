@@ -1,5 +1,5 @@
 import "./globals.css";
-import { LanguageProvider } from "@/lib/i18n";
+import { LangProvider } from "@/lib/i18n";
 import Navbar from "@/components/Navbar";
 
 export const metadata = {
@@ -11,7 +11,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body>
-        <LanguageProvider>
+        <LangProvider>
           <div className="min-h-screen flex flex-col justify-between">
             <Navbar />
             <main className="max-w-3xl mx-auto px-4 w-full flex-1 py-4">
@@ -21,7 +21,7 @@ export default function RootLayout({ children }) {
               © {new Date().getFullYear()} ARENA. All rights reserved.
             </footer>
           </div>
-        </LanguageProvider>
+        </LangProvider>
       </body>
     </html>
   );
