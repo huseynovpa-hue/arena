@@ -87,23 +87,29 @@ export default function Home() {
 
   return (
     <div className="py-4">
-      {/* Week selector */}
+      {/* Week selector — compact, right-aligned filter (not a full-width banner) */}
       {weeks.length > 0 && (
-        <div className="mb-4">
-          <select
-            value={selectedWeek || ""}
-            onChange={e => { setSelectedWeek(parseInt(e.target.value)); setPredictions({}); }}
-            className="input-dark w-full text-sm font-semibold cursor-pointer"
-          >
-            {weeks.map(w => {
-              const isCur = w.week_number === current.week && w.year === current.year;
-              return (
-                <option key={w.id} value={w.id}>
-                  {isCur ? `📍 ${t.currentWeek}` : formatWeekLabel(w.week_number, lang)} — {formatWeekRange(w.week_number, w.year)}
-                </option>
-              );
-            })}
-          </select>
+        <div className="mb-4 flex justify-end">
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[--muted] whitespace-nowrap">
+              {lang === "az" ? "Həftə" : "Week"}
+            </span>
+            <select
+              value={selectedWeek || ""}
+              onChange={e => { setSelectedWeek(parseInt(e.target.value)); setPredictions({}); }}
+              className="input-dark w-auto pr-8 text-xs font-semibold cursor-pointer"
+              style={{ maxWidth: 260 }}
+            >
+              {weeks.map(w => {
+                const isCur = w.week_number === current.week && w.year === current.year;
+                return (
+                  <option key={w.id} value={w.id}>
+                    {isCur ? `📍 ${t.currentWeek}` : formatWeekLabel(w.week_number, lang)} — {formatWeekRange(w.week_number, w.year)}
+                  </option>
+                );
+              })}
+            </select>
+          </div>
         </div>
       )}
 
