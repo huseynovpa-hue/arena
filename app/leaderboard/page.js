@@ -128,12 +128,37 @@ export default function LeaderboardPage() {
       )}
 
       {filter === "month" && (
-        <div className="card p-3 mb-3 flex items-center justify-between" style={{ background: "linear-gradient(135deg, rgba(245,158,11,0.06), rgba(34,197,94,0.06))" }}>
-          <span className="text-xs font-bold text-amber-400">🏆 {t.monthlyPrizes}</span>
-          <div className="flex gap-3 text-[11px] font-bold">
-            <span className="text-amber-400">🥇 20 AZN</span>
-            <span className="text-slate-400">🥈 15 AZN</span>
-            <span className="text-orange-600">🥉 10 AZN</span>
+        <div
+          className="relative overflow-hidden rounded-2xl mb-3 px-4 py-3 flex items-center justify-between gap-3 flex-wrap"
+          style={{
+            background: "linear-gradient(135deg, #3d2705 0%, #241804 55%, #160e02 100%)",
+            border: "1px solid rgba(245,158,11,0.45)",
+            boxShadow:
+              "0 10px 24px rgba(245,158,11,0.15), 0 4px 12px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.07)",
+          }}
+        >
+          <span className="text-xs font-extrabold text-amber-300 flex items-center gap-1.5 drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">
+            🏆 {t.monthlyPrizes}
+          </span>
+          <div className="flex gap-2 text-[11px] font-bold">
+            <span
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full"
+              style={{ background: "rgba(245,158,11,0.18)", border: "1px solid rgba(245,158,11,0.5)", boxShadow: "0 2px 6px rgba(0,0,0,0.3)" }}
+            >
+              <span>🥇</span><span className="text-amber-300">20 AZN</span>
+            </span>
+            <span
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full"
+              style={{ background: "rgba(226,232,240,0.14)", border: "1px solid rgba(226,232,240,0.4)", boxShadow: "0 2px 6px rgba(0,0,0,0.3)" }}
+            >
+              <span>🥈</span><span className="text-slate-100">15 AZN</span>
+            </span>
+            <span
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full"
+              style={{ background: "rgba(249,115,22,0.18)", border: "1px solid rgba(249,115,22,0.5)", boxShadow: "0 2px 6px rgba(0,0,0,0.3)" }}
+            >
+              <span>🥉</span><span className="text-orange-300">10 AZN</span>
+            </span>
           </div>
         </div>
       )}
